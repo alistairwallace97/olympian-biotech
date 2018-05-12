@@ -17,6 +17,9 @@ void testHrFilter () {
     FilterTwoPole filterTwoLowpass;               // create a two pole Lowpass filter
     filterTwoLowpass.setAsFilter( LOWPASS_BUTTERWORTH, hrHighCutoff );
     FilterOnePole filterOneHighpass( HIGHPASS, hrLowCutoff );  // create a one pole (RC) highpass filter
+    FilterTwoPole filterTwoLpNoise;               // create a two pole Lowpass filter
+    filterTwoLpNoise.setAsFilter( LOWPASS_BUTTERWORTH, hrHighCutoff );
+    FilterOnePole filterOneHpNoise( HIGHPASS, hrLowCutoff );  // create a one pole (RC) highpass filter
     int HrSignal;                                 // holds the incoming raw data. Signal value can range from 0-1024
 
     while(true) {     
