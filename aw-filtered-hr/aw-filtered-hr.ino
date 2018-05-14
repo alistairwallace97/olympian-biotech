@@ -115,7 +115,7 @@ void testHrFilter () {
             maxThree.counter = counter;
         }
         
-
+        Serial.print(HrSignal);
         Serial.println(bandpassCurrent);
         // Serial.print(",");
         // Serial.print(TMinusOneHr);
