@@ -61,22 +61,22 @@ void testHrFilter () {
 
         // Save and update recent maximums
         if((TMinusOneHr > TMinusTwoHr)&&(TMinusOneHr > bandpassCurrent)){
-            Serial.println("\n\n\n\nFound a maximum");
-            Serial.print("maxOne.value = ");
-            Serial.print(maxOne.value);
-            Serial.print(", maxOne.counter = ");
-            Serial.println(maxOne.counter);
-            Serial.print("maxTwo.value = ");
-            Serial.print(maxTwo.value);
-            Serial.print(", maxTwo.counter = ");
-            Serial.println(maxTwo.counter);
-            Serial.print("maxThree.value = ");
-            Serial.print(maxThree.value);
-            Serial.print(", maxThree.counter = ");
-            Serial.println(maxThree.counter);
-            Serial.print("bandpassCurrent = ");
-            Serial.println(bandpassCurrent);
-            Serial.println("\n\n\n");
+            // Serial.println("\n\n\n\nFound a maximum");
+            // Serial.print("maxOne.value = ");
+            // Serial.print(maxOne.value);
+            // Serial.print(", maxOne.counter = ");
+            // Serial.println(maxOne.counter);
+            // Serial.print("maxTwo.value = ");
+            // Serial.print(maxTwo.value);
+            // Serial.print(", maxTwo.counter = ");
+            // Serial.println(maxTwo.counter);
+            // Serial.print("maxThree.value = ");
+            // Serial.print(maxThree.value);
+            // Serial.print(", maxThree.counter = ");
+            // Serial.println(maxThree.counter);
+            // Serial.print("bandpassCurrent = ");
+            // Serial.println(bandpassCurrent);
+            // Serial.println("\n\n\n");
             //Then we are at a peak
             if(HrSignal > maxOne.value){
                 maxThree = maxTwo;
@@ -97,35 +97,37 @@ void testHrFilter () {
         
         // Clean old maximums 
         if(((counter - maxOne.counter)>60)&&(maxOne.value != 0.00)){
-            Serial.print("\nMax one expired\n");
+            // Serial.print("\nMax one expired\n");
             maxOne = maxTwo;
             maxTwo = maxThree;
             maxThree.value = 0;
             maxThree.counter = counter;
         }
         if(((counter - maxTwo.counter)>60)&&(maxTwo.value != 0.00)){
-            Serial.print("\nMax two expired\n");
+            // Serial.print("\nMax two expired\n");
             maxTwo = maxThree;
             maxThree.value = 0;
             maxThree.counter = counter;
         }
         if(((counter - maxThree.counter)>60)&&(maxThree.value != 0.00)){
-            Serial.print("\nMax three expired\n");
+            // Serial.print("\nMax three expired\n");
             maxThree.value = 0;
             maxThree.counter = counter;
         }
         
-        Serial.print(bandpassCurrent);
-        Serial.print(",");
-        Serial.print(TMinusOneHr);
-        Serial.print(",");
-        Serial.print(TMinusTwoHr);
-        Serial.print(",   ");
-        Serial.print(maxOne.value);
-        Serial.print(",");
-        Serial.print(maxTwo.value);
-        Serial.print(",");
-        Serial.println(maxThree.value);
+        Serial.print(HrSignal);
+        Serial.print("     ");
+        Serial.println(bandpassCurrent);
+        // Serial.print(",");
+        // Serial.print(TMinusOneHr);
+        // Serial.print(",");
+        // Serial.print(TMinusTwoHr);
+        // Serial.print(",   ");
+        // Serial.print(maxOne.value);
+        // Serial.print(",");
+        // Serial.print(maxTwo.value);
+        // Serial.print(",");
+        // Serial.println(maxThree.value);
         // Serial.println(bandpassNoiseCurrent);
         // Serial.print(",");
         // Serial.println(bandpassCurrent + bandpassNoiseCurrent);
