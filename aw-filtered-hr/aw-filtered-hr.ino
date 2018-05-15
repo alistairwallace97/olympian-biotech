@@ -45,7 +45,7 @@ void testHrFilter () {
     recentMax maxThree;
     maxThree.value = 0;
     maxThree.counter = 0;
-    int maxValueTime = 120;
+    int maxValueTime = 180;
     float thresholdRatio = 0.70;
     float threshold = 0.00;
     bool aboveThreshold = false;
@@ -144,7 +144,7 @@ void testHrFilter () {
         Serial.println(avgHr);*/
 
 
-        
+        //Update variables for next run through
         TMinusTwoHr = TMinusOneHr;
         TMinusOneHr = bandpassCurrent;
         counter += 1;
@@ -156,29 +156,4 @@ void loop() {
     testHrFilter();
 }
 
-
-// Not currently working or used
-float bandpassFilter(float Signal) {
-    //Initialisation 
-    float hrLowCutoff = 0.5;                      // 30 bpm
-    float hrHighCutoff = 4.166666;                // 250 bpm
-    float bandpassCurrent = 0;
-    
-    // standard Lowpass, set to the corner frequency
-    FilterTwoPole filterTwoLowpass;               // create a two pole Lowpass filter
-    filterTwoLowpass.setAsFilter( LOWPASS_BUTTERWORTH, hrHighCutoff );
-    FilterOnePole filterOneHighpass( HIGHPASS, hrLowCutoff );  // create a one pole (RC) highpass filter
-
-    filterTwoLowpass.input(Signal);             // Filter HR signal
-    bandpassCurrent = filterOneHighpass.input(filterTwoLowpass.output());
-
-    Serial.print("HrSignal in funtion = "); 
-    Serial.print(Signal);
-    Serial.print(", ");   
-    Serial.print("bandpassCurrent in funtion = ");
-    Serial.print(bandpassCurrent);
-    Serial.print(", ");
-
-    return bandpassCurrent;
-}
 
