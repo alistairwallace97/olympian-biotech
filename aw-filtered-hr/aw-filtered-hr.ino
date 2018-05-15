@@ -45,6 +45,17 @@ void testHrFilter () {
     recentMax maxThree;
     maxThree.value = 0;
     maxThree.counter = 0;
+    int maxValueTime = 120;
+    float thresholdRatio = 0.70;
+    float threshold = 0.00;
+    bool aboveThreshold = false;
+    unsigned long lastTime;
+    unsigned long latestTime;
+    unsigned long firstTime;
+    float beatCounter = 0.00;
+    float instHr = 0.00;
+    float avgHr = 0.00;
+
 
     while(true) {     
         HrSignal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
@@ -61,75 +72,79 @@ void testHrFilter () {
 
         // Save and update recent maximums
         if((TMinusOneHr > TMinusTwoHr)&&(TMinusOneHr > bandpassCurrent)){
-            Serial.println("\n\n\n\nFound a maximum");
-            Serial.print("maxOne.value = ");
-            Serial.print(maxOne.value);
-            Serial.print(", maxOne.counter = ");
-            Serial.println(maxOne.counter);
-            Serial.print("maxTwo.value = ");
-            Serial.print(maxTwo.value);
-            Serial.print(", maxTwo.counter = ");
-            Serial.println(maxTwo.counter);
-            Serial.print("maxThree.value = ");
-            Serial.print(maxThree.value);
-            Serial.print(", maxThree.counter = ");
-            Serial.println(maxThree.counter);
-            Serial.print("bandpassCurrent = ");
-            Serial.println(bandpassCurrent);
-            Serial.println("\n\n\n");
             //Then we are at a peak
-            if(HrSignal > maxOne.value){
+            if(bandpassCurrent > maxOne.value){
                 maxThree = maxTwo;
                 maxTwo = maxOne;
                 maxOne.value = TMinusOneHr;
                 maxOne.counter = counter;
             }
-            else if(HrSignal > maxTwo.value){
+            else if(bandpassCurrent > maxTwo.value){
                maxThree = maxTwo;
                maxTwo.value = TMinusOneHr;
                maxTwo.counter = counter; 
             }
-            else if(HrSignal > maxThree.value){
+            else if(bandpassCurrent > maxThree.value){
               maxThree.value = TMinusOneHr;
               maxThree.counter = counter;
             }
         }
         
         // Clean old maximums 
-        if(((counter - maxOne.counter)>60)&&(maxOne.value != 0.00)){
-            Serial.print("\nMax one expired\n");
+        if(((counter - maxOne.counter)>maxValueTime)&&(maxOne.value != 0.00)){
+            // Serial.print("\nMax one expired\n");
             maxOne = maxTwo;
             maxTwo = maxThree;
             maxThree.value = 0;
             maxThree.counter = counter;
         }
-        if(((counter - maxTwo.counter)>60)&&(maxTwo.value != 0.00)){
-            Serial.print("\nMax two expired\n");
+        if(((counter - maxTwo.counter)>maxValueTime)&&(maxTwo.value != 0.00)){
+            // Serial.print("\nMax two expired\n");
             maxTwo = maxThree;
             maxThree.value = 0;
             maxThree.counter = counter;
         }
-        if(((counter - maxThree.counter)>60)&&(maxThree.value != 0.00)){
+        if(((counter - maxThree.counter)>maxValueTime)&&(maxThree.value != 0.00)){
             Serial.print("\nMax three expired\n");
             maxThree.value = 0;
             maxThree.counter = counter;
         }
+
+        //Toggling LED with heart beat
+        threshold = thresholdRatio*maxTwo.value;
+        if((maxThree.value != 0.00)&&(bandpassCurrent >= threshold)){
+            digitalWrite(13, HIGH);
+            aboveThreshold = true;
+        }
+        else{
+            digitalWrite(13, LOW);
+            aboveThreshold = false;
+        }
+
+        //Find beats per minute
+        if(aboveThreshold && (TMinusOneHr > TMinusTwoHr)&&(TMinusOneHr > bandpassCurrent)){
+            if(beatCounter == 0.00){
+              firstTime = millis();
+              latestTime = millis();
+            }
+            else{
+              lastTime = latestTime;
+              latestTime = millis();
+              instHr = 60.00*1000.00/(latestTime-lastTime);
+              avgHr = beatCounter*60.00*1000.00/(latestTime-firstTime);
+            }
+            beatCounter += 1.00;
+        }
         
         Serial.print(bandpassCurrent);
         Serial.print(",");
-        Serial.print(TMinusOneHr);
-        Serial.print(",");
-        Serial.print(TMinusTwoHr);
-        Serial.print(",   ");
-        Serial.print(maxOne.value);
-        Serial.print(",");
-        Serial.print(maxTwo.value);
-        Serial.print(",");
-        Serial.println(maxThree.value);
-        // Serial.println(bandpassNoiseCurrent);
-        // Serial.print(",");
-        // Serial.println(bandpassCurrent + bandpassNoiseCurrent);
+        Serial.println(threshold);    
+        /*Serial.print(instHr);
+        Serial.print(", ");
+        Serial.println(avgHr);*/
 
+
+        
         TMinusTwoHr = TMinusOneHr;
         TMinusOneHr = bandpassCurrent;
         counter += 1;
