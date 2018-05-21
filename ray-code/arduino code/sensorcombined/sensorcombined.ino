@@ -13,11 +13,25 @@
 //  Variables
 int PulseSensorPurplePin = 0;        // Pulse Sensor PURPLE WIRE connected to ANALOG PIN 0
 int LED13 = 13;   //  The on-board Arduion LED
-const int PIEZO_PIN = 1; // Piezo output
+const int PIEZO_PIN = A1; // Piezo output
+const int EMG_PIN1 = A2;
+const int EMG_PIN2 = A5;
+const int SW_PIN = 5;
+
 
 float hrLowCutoff = 0.5;                      // 30 bpm
 float hrHighCutoff = 4.166666;                // 250 bpm
 float bandpassCurrent = 0;
+
+int buttonstate = 0;
+
+struct recentMax {
+
+  float value;
+
+  int counter;
+
+};
 
 
 
@@ -44,16 +58,40 @@ void setup() {
     Wire.write(0);
     Wire.endTransmission(true);
     pinMode(LED13,OUTPUT);         // pin that will blink to your heartbeat!
+    pinMode(SW_PIN,INPUT);
     Serial.begin(9600);         // Set's up Serial Communication at certain speed.
 }
 
 // The Main Loop Function
 void loop() {
+  //---------------acccelerometer setup----------------
   unsigned long StartTime = micros();
   Wire.beginTransmission(MPU6050_addr);
   Wire.write(0x3B);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU6050_addr,14,true);
+
+  //-----------Buttons------------------
+  buttonstate = digitalRead(SW_PIN);
+  if (buttonstate == LOW){
+    //Serial.print("cough state: ");
+   // Serial.print("1");
+    //Serial.print(",");
+  }
+  else {
+    //Serial.print("cough state: ");
+    //Serial.print("0");
+    //Serial.print(",");
+  }
+
+  //------------EMG sensor------------------
+  int EMGADC1 = analogRead(EMG_PIN1);
+  int EMGADC2 = analogRead(EMG_PIN2);
+  //Serial.print("EMGdata: ");
+  Serial.println(EMGADC1);
+//  Serial.print(",");
+//  Serial.println(EMGADC2);
+  //----------------------------------------
 
   //----------------vibration sensor----------------------------
   // Read Piezo ADC value in, and convert it to a voltage
@@ -78,11 +116,12 @@ void loop() {
   // filterTwoLowpass.input(HrSignal);
   // bandpassCurrent = filterOneHighpass.input(filterTwoLowpass.output());
    //Serial.println(bandpassCurrent);
-   Serial.println("Accelerometer Data:");
-   Serial.print(AccX);Serial.print(',');Serial.print(AccY);Serial.print(',');Serial.print(AccZ);Serial.print(',');Serial.print(GyroX);Serial.print(',');Serial.print(GyroY);Serial.print(',');Serial.println(GyroZ);
-   Serial.println("HRsensor raw data");
-   Serial.println(Signal);                    // Send the Signal value to Serial Plotter.
-   //Serial.print(',');
+   //Serial.print("Accelerometer Data:");
+   //Serial.print(" ");
+  // Serial.print(AccX);Serial.print(',');Serial.print(AccY);Serial.print(',');Serial.print(AccZ);Serial.print(',');Serial.print(GyroX);Serial.print(',');Serial.print(GyroY);Serial.print(',');Serial.print(GyroZ);
+   //Serial.print("HRsensor raw data: ");
+   //Serial.println(Signal);                    // Send the Signal value to Serial Plotter.
+  // Serial.println(',');
 
 
    if(Signal > Threshold){                          // If the signal is above "550", then "turn-on" Arduino's on-Board LED.
@@ -92,7 +131,7 @@ void loop() {
    }
    unsigned long CurrentTime = micros();
    count++;
-   delay(10);
+   delay(20);
    unsigned long ElapsedTime = CurrentTime - StartTime;
    unsigned long avg = (ElapsedTime+prev)/count;
    prev = prev + ElapsedTime;
