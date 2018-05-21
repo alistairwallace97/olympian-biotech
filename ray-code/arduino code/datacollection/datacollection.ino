@@ -162,35 +162,35 @@ void loop() {
   buttonstate = digitalRead(SW_PIN);
   if (buttonstate == LOW){
     //Serial.print("cough state: ");
-   // Serial.print("1");
-    //Serial.print(",");
+    Serial.print("1");
+    Serial.print(",");
   }
   else {
     //Serial.print("cough state: ");
-   // Serial.print("0");
-    //Serial.print(",");
+    Serial.print("0");
+    Serial.print(",");
   }
 
   //------------EMG sensor------------------
   int EMGADC1 = analogRead(EMG_PIN1);
   int EMGADC2 = analogRead(EMG_PIN2);
   //Serial.print("EMGdata: ");
-  Serial.println(EMGADC1);
-  /*Serial.print(",");
+  Serial.print(EMGADC1);
+  Serial.print(",");
   Serial.print(EMGADC2);
-  Serial.print(",");*/
+  Serial.print(",");
   //----------------------------------------
 
   //----------------vibration sensor----------------------------
   // Read Piezo ADC value in, and convert it to a voltage
- /* int piezoADC1 = analogRead(PIEZO_PIN1);
+  int piezoADC1 = analogRead(PIEZO_PIN1);
   float piezoV1 = piezoADC1 / 1023.0 * 100;
   Serial.print(piezoV1); // Print the voltage.
   Serial.print(",");
   int piezoADC2 = analogRead(PIEZO_PIN2);
   float piezoV2 = piezoADC2 / 1023.0 * 100;
   Serial.print(piezoV2); // Print the voltage.
-  Serial.print(",");*/
+  Serial.print(",");
   //----------------------------------------------------------------
 
   //---------accelerometer sensor----------------------
@@ -211,7 +211,7 @@ void loop() {
    //Serial.println(bandpassCurrent);
    //Serial.print("Accelerometer Data:");
    //Serial.print(" ");
-   //Serial.print(AccX);Serial.print(',');Serial.print(AccY);Serial.print(',');Serial.print(AccZ);Serial.print(',');Serial.print(GyroX);Serial.print(',');Serial.print(GyroY);Serial.print(',');Serial.print(GyroZ);Serial.print(',');
+   Serial.print(AccX);Serial.print(',');Serial.print(AccY);Serial.print(',');Serial.print(AccZ);Serial.print(',');Serial.print(GyroX);Serial.print(',');Serial.print(GyroY);Serial.print(',');Serial.print(GyroZ);Serial.print(',');
    //Serial.print("HRsensor raw data: ");
    //Serial.println(Signal);                    // Send the Signal value to Serial Plotter.
   // Serial.println(',');
@@ -380,7 +380,7 @@ void loop() {
 
         
 
-       /* Serial.print(bandpassCurrent);
+        Serial.print(bandpassCurrent);
 
         Serial.print(",");
 
@@ -391,7 +391,7 @@ void loop() {
         Serial.print(",");
 
         Serial.print(avgHr);
-        Serial.print(",");*/
+        Serial.print(",");
 
 
 
@@ -404,18 +404,12 @@ void loop() {
         TMinusOneHr = bandpassCurrent;
 
         counter += 1;
-      //  Serial.println("0");
+        
+//Index for test person, change to your index accordinglybefore testing------------------------
+        Serial.println("1");//0: Alistair 1:Sugi 2:LU 3:Ray 4:Ian 5:Ismaeel 6:Shamim
 
         delay(20);
  }
-
-   /*unsigned long ElapsedTime = CurrentTime - StartTime;
-   unsigned long avg = (ElapsedTime+prev)/count;
-   prev = prev + ElapsedTime;
-   Serial.print("time for one loop is ");
-   Serial.println(ElapsedTime);
-   Serial.print("avg time for one loop is ");
-   Serial.println(avg);*/
 
 
 }
