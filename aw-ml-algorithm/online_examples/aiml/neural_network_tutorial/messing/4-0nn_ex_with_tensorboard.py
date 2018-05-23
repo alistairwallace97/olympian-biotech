@@ -105,7 +105,7 @@ with tf.Session() as sess:
     # initialise the variables
     sess.run(init_op)
     # define a writer for Tensor Board
-    #train_writer = tf.summary.FileWriter('./logs/1/train ', sess.graph)
+    train_writer = tf.summary.FileWriter('./logs/1/train ', sess.graph)
     # The number of batches we are going to loop through
     # for each epoch
     total_batch = int(len(mnist.train.labels)/batch_size)
@@ -122,7 +122,7 @@ with tf.Session() as sess:
             batch_x, batch_y = mnist.train.next_batch(\
                                     batch_size=batch_size)
             # add a merge in the training loop for tb
-            #merge = tf.summary.merge_all()
+            merge = tf.summary.merge_all()
             #NOTE_: sess.run can take two operations as 
             #       it's inputs. (optimiser and cross_...)
             _, c = sess.run([optimiser,\
@@ -133,7 +133,7 @@ with tf.Session() as sess:
             avg_cost += c/total_batch
             # add summary to our writer for tb
             #train_writer.add_summary(summary, i)
-        #tf.summary.histogram("avg_cost", avg_cost)
+        tf.summary.histogram("avg_cost", avg_cost)
         print("Epoch:", (epoch +1), "cost =", "{:.3f}".format(avg_cost))
     print("Training Complete\nTest Error:\n", sess.run(accuracy, feed_dict={x: mnist.test.images, y:mnist.test.labels}))
 
