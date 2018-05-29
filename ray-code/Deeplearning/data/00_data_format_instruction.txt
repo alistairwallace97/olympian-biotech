@@ -10,7 +10,7 @@ aw -> ali
 ik -> ismaeel
 ir -> ian
 lj -> lu
-lr -> ray
+ls -> ray
 sa -> shamim
 sc -> sugi
 

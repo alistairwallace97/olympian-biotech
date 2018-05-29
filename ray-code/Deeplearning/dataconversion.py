@@ -66,7 +66,7 @@ for i in range(0,len(outputlisttemp)):
     if i==len(outputlisttemp):
         const=len(outputlisttemp[len(outputlisttemp)-1])%100
     for j in range(0,100):
-        if outputlisttemp[i][j]==1:
+        if outputlisttemp[i][j]=="1":
             outputbool=1
     outputlist.append(outputbool)
 np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
