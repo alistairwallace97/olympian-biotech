@@ -30,7 +30,7 @@ X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test")
 
 
 # Normalize?
-#X_train, X_test = standardize(X_train, X_test)
+X_train, X_test = standardize(X_train, X_test)
 
 
 # Train/Validation Split
@@ -39,7 +39,7 @@ X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test")
 
 
 X_tr, X_vld, lab_tr, lab_vld = train_test_split(X_train, labels_train, 
-                                                stratify = labels_train, random_state = 123)
+                                                stratify = labels_train, random_state = 183)
 
 
 # One-hot encoding:
@@ -64,10 +64,10 @@ import tensorflow as tf
 # In[7]:
 
 
-batch_size = 350#525#600       # Batch size  
+batch_size = 350#525#600       # Batch size(in utils.py as well ,this needs to be smaller than number of test data samples to do the test(<20)
 seq_len = 100          # Number of steps
-learning_rate = 0.0001
-epochs = 700
+learning_rate = 0.00005#0.0001
+epochs = 50
 
 n_classes = 2
 n_channels = 10
@@ -132,7 +132,8 @@ with graph.as_default():
     logits = tf.layers.dense(flat, n_classes)
     
     # Cost function and optimizer
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_))
+   # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_))
+    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels_))
     optimizer = tf.train.AdamOptimizer(learning_rate_).minimize(cost)
     
     # Accuracy
@@ -253,7 +254,7 @@ test_acc = []
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
-    
+    print(len(X_test))
     for x_t, y_t in get_batches(X_test, y_test, batch_size):
         feed = {inputs_: x_t,
                 labels_: y_t,
