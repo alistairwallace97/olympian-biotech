@@ -222,7 +222,7 @@ plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
-fig1.savefig('loss_vs_iterations.fig')
+fig1.savefig('loss_vs_iterations.pdf')
 
 
 # In[14]:
@@ -235,7 +235,7 @@ plt.xlabel("Iteration")
 plt.ylabel("Accuracy")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
-fig2.savefig('acc_vs_iterations.fig')
+fig2.savefig('acc_vs_iterations.pdf')
 
 
 # ## Evaluate on test set
