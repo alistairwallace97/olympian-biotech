@@ -47,7 +47,7 @@ for c in df.columns:
         end=start+seq_len
     if c=='CoughState':
         outputlisttemp=listoflist
-    np.savetxt(c+".csv", listoflist, delimiter=",", fmt='%s')
+    np.savetxt(c+".txt", listoflist, delimiter=",", fmt='%s')
 outputlist=[]
 
 for i in range(0,len(outputlisttemp)):
@@ -58,5 +58,5 @@ for i in range(0,len(outputlisttemp)):
         if outputlisttemp[i][j]==1:
             outputbool=1
     outputlist.append(outputbool)
-np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
+np.savetxt("output.txt", outputlist, delimiter=",", fmt='%s')
 print("done")
