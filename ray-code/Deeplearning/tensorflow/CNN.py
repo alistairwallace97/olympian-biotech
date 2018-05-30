@@ -12,6 +12,7 @@ import os
 from utils.utilities import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+plt.ion()
 #get_ipython().run_line_magic('matplotlib', 'inline')
 
 
@@ -218,30 +219,46 @@ with tf.Session(graph=graph) as sess:
 
 # In[13]:
 
+print("\nreached before loss plot\n")
 
 # Plot training and test loss
 t = np.arange(iteration-1)
+print("did: t = np.arange(iteration-1)")
 
 plt.figure(figsize = (6,6))
+print("did: plt.figure(figsize = (6,6))")
 plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')
-plt.xlabel("iteration")
+print("did: plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')")
+plt.xlabel("Iteration")
+print("did: plt.xlabel('Iteration')")
 plt.ylabel("Loss")
+print("did: plt.ylabel('Loss')")
 plt.legend(['train', 'validation'], loc='upper right')
+print("did: plt.legend(['train', 'validation'], loc='upper right')")
 plt.show()
+print("did: plt.show()")
 
+print("\nreached end of loss plot, beginning of acc plot")
 
 # In[14]:
 
 
 # Plot Accuracies
 plt.figure(figsize = (6,6))
+print("did: plt.figure(figsize = (6,6))")
 
 plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')
-plt.xlabel("iteration")
-plt.ylabel("Accuray")
+print("did: plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')")
+plt.xlabel("Iteration")
+print("did: plt.xlabel('Iteration')")
+plt.ylabel("Accuracy")
+print("did: plt.ylabel('Accuracy')")
 plt.legend(['train', 'validation'], loc='upper right')
+print("did: plt.legend(['train', 'validation'], loc='upper right')")
 plt.show()
+print("did: plt.show()")
 
+print("reached end of acc plot")
 
 # ## Evaluate on test set
 
@@ -249,6 +266,8 @@ plt.show()
 
 
 test_acc = []
+
+print("started begining of validation session")
 
 with tf.Session(graph=graph) as sess:
     # Restore
