@@ -13,7 +13,6 @@ from utils.utilities import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 plt.ion()
-#get_ipython().run_line_magic('matplotlib', 'inline')
 
 
 # ## Prepare data
@@ -23,8 +22,6 @@ plt.ion()
 
 X_train, labels_train, list_ch_train = read_data(data_path="./data/", split="train") # train
 X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test") # test
-
-#assert list_ch_train == list_ch_test, "Mistmatch in channels!"
 
 
 # In[3]:
@@ -146,10 +143,6 @@ with graph.as_default():
 # In[11]:
 
 
-#if (os.path.exists('checkpoints-cnn') == False):
-   # get_ipython().system('mkdir checkpoints-cnn')
-
-
 # In[12]:
 
 
@@ -223,28 +216,26 @@ with tf.Session(graph=graph) as sess:
 # Plot training and test loss
 t = np.arange(iteration-1)
 
-#fig1 = plt.figure(figsize = (6,6))
-plt.figure(figsize = (6,6))
+fig1 = plt.figure(figsize = (6,6))
 plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')
 plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
-#fig1.savefig('loss_vs_iterations')
+fig1.savefig('loss_vs_iterations.fig')
 
 
 # In[14]:
 
 
 # Plot Accuracies
-#fig2 = plt.figure(figsize = (6,6))
-plt.figure(figsize = (6,6))
+fig2 = plt.figure(figsize = (6,6))
 plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')
 plt.xlabel("Iteration")
 plt.ylabel("Accuracy")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
-#fig2.savefig('acc_vs_iterations')
+fig2.savefig('acc_vs_iterations.fig')
 
 
 # ## Evaluate on test set
@@ -254,21 +245,11 @@ plt.show()
 
 test_acc = []
 
-#print("started begining of validation session")
-
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
 
     test_counter = 0
-
-    #print("len(X_test) = ", len(X_test))
-    #print("X_test = ", X_test)
-    #print("X_test[:-1] = ", X_test[:-1])
-    #print("len(y_test) = ", len(y_test))
-    #print("y_test = ", y_test)
-    #print("y_test[:-1] = ", y_test[:-1])
-    #print("batch_size = ", batch_size)
 
     for x_t, y_t in get_batches(X_test[:-1], y_test[:-1], batch_size):
         feed = {inputs_: x_t,
@@ -277,9 +258,6 @@ with tf.Session(graph=graph) as sess:
         
         batch_acc = sess.run(accuracy, feed_dict=feed)
         test_counter = test_counter + 1
-        #print("\nbatch_acc ", test_counter, " = ", batch_acc)
         test_acc.append(batch_acc)
-        #print("test_acc = ", test_acc)
-    #print("finished for loop")
     print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
 
