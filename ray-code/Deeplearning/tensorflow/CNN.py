@@ -65,7 +65,7 @@ import tensorflow as tf
 # In[7]:
 
 
-batch_size = 350#525#600       # Batch size  
+batch_size = 20        #525#600       # Batch size  
 seq_len = 100          # Number of steps
 learning_rate = 0.0001
 epochs = 700
@@ -219,46 +219,33 @@ with tf.Session(graph=graph) as sess:
 
 # In[13]:
 
-print("\nreached before loss plot\n")
 
 # Plot training and test loss
 t = np.arange(iteration-1)
-print("did: t = np.arange(iteration-1)")
 
+#fig1 = plt.figure(figsize = (6,6))
 plt.figure(figsize = (6,6))
-print("did: plt.figure(figsize = (6,6))")
 plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')
-print("did: plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')")
 plt.xlabel("Iteration")
-print("did: plt.xlabel('Iteration')")
 plt.ylabel("Loss")
-print("did: plt.ylabel('Loss')")
 plt.legend(['train', 'validation'], loc='upper right')
-print("did: plt.legend(['train', 'validation'], loc='upper right')")
 plt.show()
-print("did: plt.show()")
+#fig1.savefig('loss_vs_iterations')
 
-print("\nreached end of loss plot, beginning of acc plot")
 
 # In[14]:
 
 
 # Plot Accuracies
+#fig2 = plt.figure(figsize = (6,6))
 plt.figure(figsize = (6,6))
-print("did: plt.figure(figsize = (6,6))")
-
 plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')
-print("did: plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')")
 plt.xlabel("Iteration")
-print("did: plt.xlabel('Iteration')")
 plt.ylabel("Accuracy")
-print("did: plt.ylabel('Accuracy')")
 plt.legend(['train', 'validation'], loc='upper right')
-print("did: plt.legend(['train', 'validation'], loc='upper right')")
 plt.show()
-print("did: plt.show()")
+#fig2.savefig('acc_vs_iterations')
 
-print("reached end of acc plot")
 
 # ## Evaluate on test set
 
@@ -267,18 +254,32 @@ print("reached end of acc plot")
 
 test_acc = []
 
-print("started begining of validation session")
+#print("started begining of validation session")
 
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
-    
-    for x_t, y_t in get_batches(X_test, y_test, batch_size):
+
+    test_counter = 0
+
+    #print("len(X_test) = ", len(X_test))
+    #print("X_test = ", X_test)
+    #print("X_test[:-1] = ", X_test[:-1])
+    #print("len(y_test) = ", len(y_test))
+    #print("y_test = ", y_test)
+    #print("y_test[:-1] = ", y_test[:-1])
+    #print("batch_size = ", batch_size)
+
+    for x_t, y_t in get_batches(X_test[:-1], y_test[:-1], batch_size):
         feed = {inputs_: x_t,
                 labels_: y_t,
                 keep_prob_: 1}
         
         batch_acc = sess.run(accuracy, feed_dict=feed)
+        test_counter = test_counter + 1
+        #print("\nbatch_acc ", test_counter, " = ", batch_acc)
         test_acc.append(batch_acc)
+        #print("test_acc = ", test_acc)
+    #print("finished for loop")
     print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
 

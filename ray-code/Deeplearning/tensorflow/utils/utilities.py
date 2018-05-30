@@ -63,13 +63,17 @@ def one_hot(labels, n_class = 2):
 
 def get_batches(X, y, batch_size = 350):
 	""" Return a generator for batches """
+	#print("\n\nEntered get_batches")
+	#print("len(X) = ", len(X))
 	n_batches = len(X) // batch_size
+	#print("n_batches = ", n_batches)
+	#print("Therefore n_batches*batch_size = ", (n_batches*batch_size))
 	X, y = X[:n_batches*batch_size], y[:n_batches*batch_size]
 
 	# Loop over batches and yield
 	for b in range(0, len(X), batch_size):
 		yield X[b:b+batch_size], y[b:b+batch_size]
-	
+	#print("exited get_batches\n\n")
 
 
 
