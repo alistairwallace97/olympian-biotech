@@ -12,7 +12,7 @@ import os
 from utils.utilities import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-#get_ipython().run_line_magic('matplotlib', 'inline')
+plt.ion()
 
 
 # ## Prepare data
@@ -23,14 +23,12 @@ import matplotlib.pyplot as plt
 X_train, labels_train, list_ch_train = read_data(data_path="./data/", split="train") # train
 X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test") # test
 
-#assert list_ch_train == list_ch_test, "Mistmatch in channels!"
-
 
 # In[3]:
 
 
 # Normalize?
-#X_train, X_test = standardize(X_train, X_test)
+X_train, X_test = standardize(X_train, X_test)
 
 
 # Train/Validation Split
@@ -39,7 +37,7 @@ X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test")
 
 
 X_tr, X_vld, lab_tr, lab_vld = train_test_split(X_train, labels_train, 
-                                                stratify = labels_train, random_state = 123)
+                                                stratify = labels_train, random_state = 183)
 
 
 # One-hot encoding:
@@ -64,10 +62,14 @@ import tensorflow as tf
 # In[7]:
 
 
-batch_size = 350#525#600       # Batch size  
+<<<<<<< HEAD
+batch_size = 350#525#600       # Batch size(in utils.py as well ,this needs to be smaller than number of test data samples to do the test(<20)
+=======
+batch_size = 20        #525#600       # Batch size  
+>>>>>>> aw-debug-edit-rays-algo
 seq_len = 100          # Number of steps
-learning_rate = 0.0001
-epochs = 700
+learning_rate = 0.00005#0.0001
+epochs = 50
 
 n_classes = 2
 n_channels = 10
@@ -132,7 +134,8 @@ with graph.as_default():
     logits = tf.layers.dense(flat, n_classes)
     
     # Cost function and optimizer
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_))
+   # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_))
+    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels_))
     optimizer = tf.train.AdamOptimizer(learning_rate_).minimize(cost)
     
     # Accuracy
@@ -143,10 +146,6 @@ with graph.as_default():
 # ### Train the network
 
 # In[11]:
-
-
-#if (os.path.exists('checkpoints-cnn') == False):
-   # get_ipython().system('mkdir checkpoints-cnn')
 
 
 # In[12]:
@@ -222,25 +221,26 @@ with tf.Session(graph=graph) as sess:
 # Plot training and test loss
 t = np.arange(iteration-1)
 
-plt.figure(figsize = (6,6))
+fig1 = plt.figure(figsize = (6,6))
 plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')
-plt.xlabel("iteration")
+plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
+fig1.savefig('loss_vs_iterations.pdf')
 
 
 # In[14]:
 
 
 # Plot Accuracies
-plt.figure(figsize = (6,6))
-
+fig2 = plt.figure(figsize = (6,6))
 plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')
-plt.xlabel("iteration")
-plt.ylabel("Accuray")
+plt.xlabel("Iteration")
+plt.ylabel("Accuracy")
 plt.legend(['train', 'validation'], loc='upper right')
 plt.show()
+fig2.savefig('acc_vs_iterations.pdf')
 
 
 # ## Evaluate on test set
@@ -253,13 +253,16 @@ test_acc = []
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
-    
-    for x_t, y_t in get_batches(X_test, y_test, batch_size):
+
+    test_counter = 0
+
+    for x_t, y_t in get_batches(X_test[:-1], y_test[:-1], batch_size):
         feed = {inputs_: x_t,
                 labels_: y_t,
                 keep_prob_: 1}
         
         batch_acc = sess.run(accuracy, feed_dict=feed)
+        test_counter = test_counter + 1
         test_acc.append(batch_acc)
     print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
 

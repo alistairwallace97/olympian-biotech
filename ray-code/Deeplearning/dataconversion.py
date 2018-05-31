@@ -1,18 +1,13 @@
 # loading libraries
 import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score
-import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cross_validation import train_test_split
-import operator
-import math
 from scipy.signal import butter, lfilter, freqz
-import string
 
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
+seq_len = 100
 
-df = pd.read_csv('Ali_test3.txt', header=None, names=names)
+names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+
+df = pd.read_csv('combineddata.txt', header=None, names=names)
 
 def butter_lowpass(cutoff, fs, order):
     nyq = 0.5 * fs
@@ -35,63 +30,33 @@ for i in range(1, 11):
 
 
 
-#print(listoflist)
-
-print(len(df))
 for c in df.columns:    
     start=0
-    end=100
+    end=seq_len
     templist=[]
     listoflist=[]
     for i in range (0,len(df)):
         if i>=start and i<end:
             templist.append(df[c][i])
         if i==end-1:
-            start=start+100
+            start=start+seq_len
             templist=" ".join(str(x) for x in templist)
             listoflist.append(templist)
-            #print(len(templist))
             templist=[]
 
-        end=start+100
-    if c=='Cough state':
+        end=start+seq_len
+    if c=='CoughState':
         outputlisttemp=listoflist
-    #print(listoflist)
-    np.savetxt(c+".csv", listoflist, delimiter=",", fmt='%s')
-print(len(listoflist))
+    np.savetxt(c+".txt", listoflist, delimiter=",", fmt='%s')
 outputlist=[]
 
 for i in range(0,len(outputlisttemp)):
     outputbool=0
     if i==len(outputlisttemp):
-        const=len(outputlisttemp[len(outputlisttemp)-1])%100
-    for j in range(0,100):
-        if outputlisttemp[i][j]=="1":
+        const=len(outputlisttemp[len(outputlisttemp)-1])%seq_len
+    for j in range(0,seq_len):
+        if outputlisttemp[i][j]==1:
             outputbool=1
     outputlist.append(outputbool)
-np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
-
-
-
-#dat=pd.read_csv("EMG1.csv", delimiter=",")
-#print(dat)
-
-#to_write = []
-#counter = 0
-#with open("EMG1.csv", "r") as f:
-#    for line in f:
-#        for counter in range(0,102):
-#            line = list(line)
-#            line[line.index(",")] = "/"
-#            line[line.index(",")] = "/"
-#            counter += 1
-#        counter = 0
-#        to_write.append("".join(line))
-
-#for c in df.columns:    
- #   data = pd.read_csv(c+".csv", header=None, names=names)
-  #  print(data)
-
-##data = pd.read_csv("EMG1.csv", header=None)
-#print(data)
-#for i in range(0,)
+np.savetxt("output.txt", outputlist, delimiter=",", fmt='%s')
+print("done")
