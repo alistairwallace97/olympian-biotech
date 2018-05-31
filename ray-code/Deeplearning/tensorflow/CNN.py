@@ -62,11 +62,7 @@ import tensorflow as tf
 # In[7]:
 
 
-<<<<<<< HEAD
-batch_size = 350#525#600       # Batch size(in utils.py as well ,this needs to be smaller than number of test data samples to do the test(<20)
-=======
 batch_size = 20        #525#600       # Batch size  
->>>>>>> aw-debug-edit-rays-algo
 seq_len = 100          # Number of steps
 learning_rate = 0.00005#0.0001
 epochs = 50
