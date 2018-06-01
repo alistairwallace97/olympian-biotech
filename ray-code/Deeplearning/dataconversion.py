@@ -7,7 +7,7 @@ seq_len = 100
 
 names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
 
-df = pd.read_csv('combineddata.txt', header=None, names=names)
+df = pd.read_csv('Sugi_test1.txt', header=None, names=names)
 
 def butter_lowpass(cutoff, fs, order):
     nyq = 0.5 * fs

@@ -12,7 +12,7 @@ import os
 from utils.utilities import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-plt.ion()
+#plt.ion()
 
 
 # ## Prepare data
@@ -65,7 +65,7 @@ import tensorflow as tf
 batch_size = 20        #525#600       # Batch size  
 seq_len = 100          # Number of steps
 learning_rate = 0.00005#0.0001
-epochs = 50
+epochs = 5
 
 n_classes = 2
 n_channels = 10
@@ -243,22 +243,66 @@ fig2.savefig('acc_vs_iterations.pdf')
 
 # In[15]:
 
+def output_graph(preds, y_t, x_t):    
+    # Stretch predicitons out by the sequence length so 
+    # that they can be plotted agaoin the EMG1.
+    preds_plot = []
+    for i in range(len(preds)):
+        for j in range(0,seq_len):
+            preds_plot.append(preds[i])
 
+    # get xt in a plotable form
+    emg1_lst = []
+    for i in range(len(x_t)):
+        for j in range(len(x_t[0])):
+            # the 3 specifies that it is emg1
+            emg1_lst = emg1_lst + [x_t[i][j][3]]
+    emg_len = len(emg1_lst)
+
+    # get switch data
+    f = open('./data/test/CoughState.txt')
+    switch = []
+    i = 0
+    for line in f:
+        for c in line.strip():
+            if(((c == '0')or(c == '1'))and(i<emg_len)):
+                i += 1
+                switch.append(float(c))
+
+    plt.title("EMG, Switch presses and ML predictions")
+    plt.plot(emg1_lst, alpha=0.5, color='blue')
+    plt.plot(switch, alpha=0.5, color='green')
+    plt.plot(preds_plot, alpha=0.5, color='red') 
+    plt.legend(['EMG', 'Switch', 'Predictions'], loc='upper right')
+    plt.show()
+
+
+print("\n\n\n\nValidating ")
 test_acc = []
-
+test_pred = np.array([])
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
-
-    test_counter = 0
 
     for x_t, y_t in get_batches(X_test[:-1], y_test[:-1], batch_size):
         feed = {inputs_: x_t,
                 labels_: y_t,
                 keep_prob_: 1}
-        
         batch_acc = sess.run(accuracy, feed_dict=feed)
-        test_counter = test_counter + 1
         test_acc.append(batch_acc)
+        prediction = tf.argmax(y_t, 1)
+        current_pred = prediction.eval(feed_dict=feed, session=sess)
+        test_pred = np.append(test_pred, current_pred)
+
+    print("y_t = ", y_t)
+    print("prediction = ", prediction)
+    print("current_pred = ", current_pred)
+    print("test_acc = ", test_acc)
     print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
+
+    output_graph(test_pred, y_t, x_t)
+    print("done")
+
+
+
 
