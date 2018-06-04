@@ -52,10 +52,8 @@ outputlist=[]
 
 for i in range(0,len(outputlisttemp)):
     outputbool=0
-    if i==len(outputlisttemp):
-        const=len(outputlisttemp[len(outputlisttemp)-1])%seq_len
-    for j in range(0,seq_len):
-        if outputlisttemp[i][j]==1:
+    for j in range(0,len(outputlisttemp[i][:])):
+        if outputlisttemp[i][j-1:j+1]=='1.':
             outputbool=1
     outputlist.append(outputbool)
 np.savetxt("output.txt", outputlist, delimiter=",", fmt='%s')

@@ -12,7 +12,7 @@ import os
 from utils.utilities import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-plt.ion()
+import re
 
 
 # ## Prepare data
@@ -28,7 +28,7 @@ X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test")
 
 
 # Normalize?
-X_train, X_test = standardize(X_train, X_test)
+#X_train, X_test = standardize(X_train, X_test)
 
 
 # Train/Validation Split
@@ -65,7 +65,7 @@ import tensorflow as tf
 batch_size = 20        #525#600       # Batch size  
 seq_len = 100          # Number of steps
 learning_rate = 0.00005#0.0001
-epochs = 50
+epochs = 5
 
 n_classes = 2
 n_channels = 10
@@ -218,7 +218,8 @@ with tf.Session(graph=graph) as sess:
 t = np.arange(iteration-1)
 
 fig1 = plt.figure(figsize = (6,6))
-plt.plot(t, np.array(train_loss), 'r-', t[t % 10 == 0], np.array(validation_loss), 'b*')
+valid_t = t[t % 10 == 0]
+plt.plot(t, np.array(train_loss), 'r-', valid_t[1:], np.array(validation_loss), 'b*')
 plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.legend(['train', 'validation'], loc='upper right')
@@ -231,7 +232,8 @@ fig1.savefig('loss_vs_iterations.pdf')
 
 # Plot Accuracies
 fig2 = plt.figure(figsize = (6,6))
-plt.plot(t, np.array(train_acc), 'r-', t[t % 10 == 0], validation_acc, 'b*')
+valid_t = t[t % 10 == 0]
+plt.plot(t, np.array(train_acc), 'r-', valid_t[1:], validation_acc, 'b*')
 plt.xlabel("Iteration")
 plt.ylabel("Accuracy")
 plt.legend(['train', 'validation'], loc='upper right')
@@ -243,22 +245,79 @@ fig2.savefig('acc_vs_iterations.pdf')
 
 # In[15]:
 
+def output_graph(preds, x_t):    
+    # Stretch predicitons out by the sequence length so 
+    # that they can be plotted agaoin the EMG1.
+    preds_plot = []
+    for i in range(len(preds)):
+        for j in range(0,seq_len):
+            preds_plot.append(preds[i])
 
+    # get xt in a plotable form
+    emg1_lst = []
+    for i in range(len(x_t)):
+        for j in range(len(x_t[0])):
+            # the 3 specifies that it is emg1
+            emg1_lst = emg1_lst + [x_t[i][j][3]]
+    emg_len = len(emg1_lst)
+
+
+    # get switch data
+    f = open('./data/test/CoughState.txt')
+    text = f.read()
+    # use a regular expression to get rid of anything 
+    # unwanted, eg letters 
+    text = re.sub('[^0-9\ \.]+', " ", text)
+    switch = list(text.split())
+    switch[0] = 0.0
+    # limit it to an integer batch size, ie set of 2000
+    # samples
+    switch_plot = switch[:emg_len]
+
+    plt.title("EMG, Switch presses and ML predictions")
+    plt.plot(emg1_lst, alpha=0.5, color='blue')
+    plt.plot(switch_plot, alpha=0.5, color='green')
+    plt.plot(preds_plot[:emg_len], alpha=0.5, color='red') 
+    plt.legend(['EMG', 'Switch', 'Predictions'], loc='upper right')
+    plt.show()
+
+
+
+print("\n\n\n\nValidating ")
 test_acc = []
-
+test_pred = np.array([])
 with tf.Session(graph=graph) as sess:
     # Restore
     saver.restore(sess, tf.train.latest_checkpoint('checkpoints-cnn'))
-
-    test_counter = 0
-
-    for x_t, y_t in get_batches(X_test[:-1], y_test[:-1], batch_size):
+    x_t_tot = []
+    i = 0
+    for x_t, y_t in get_batches(X_test, y_test, batch_size):
         feed = {inputs_: x_t,
                 labels_: y_t,
                 keep_prob_: 1}
-        
         batch_acc = sess.run(accuracy, feed_dict=feed)
-        test_counter = test_counter + 1
         test_acc.append(batch_acc)
+        
+        # I think y_t should probably be swapped for 
+        # logits but it's impossible for me to tell when 
+        # it is probably that the current version of the 
+        # algorithm I am working with always predicts a 
+        # cough.
+        prediction = tf.argmax(y_t, 1)
+        current_pred = prediction.eval(feed_dict=feed, session=sess)
+        test_pred = np.append(test_pred, current_pred)
+        if(i==0):
+            x_t_tot = x_t
+        else:
+            x_t_tot = np.concatenate((x_t_tot, x_t), axis=0)
+        i += 1
+        
+
     print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
+
+    output_graph(test_pred, x_t_tot)
+    print("done")
+
+
+
 

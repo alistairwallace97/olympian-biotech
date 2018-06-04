@@ -3,7 +3,7 @@ import pandas as pd
 import glob
 import os
 
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
+names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
 
 
 path = "./data/"
@@ -13,7 +13,6 @@ df = pd.DataFrame()
 initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                         "ls":3.0, "ir":4.0, "ik":5.0,\
                         "sa":6.0}
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
 
 
 for file in all_files:
@@ -42,5 +41,5 @@ for file in all_files:
 os.remove("tmp.txt")
 
 # Export data to combineddata file with correct numbers
-df.to_csv('combineddata_test.txt', index=False, header=False)
+df.to_csv('combineddata.txt', index=False, header=False)
 print("done")
