@@ -9,7 +9,7 @@ def read_data(data_path, split = "train"):
 	""" Read data """
 
 	# Fixed params
-	n_class = 2
+	n_class = 4
 	n_steps = 100
 
 	# Paths
@@ -53,7 +53,7 @@ def standardize(train, test):
 
 	return X_train, X_test
 
-def one_hot(labels, n_class = 2):
+def one_hot(labels, n_class = 4):
 	""" One-hot encoding """
 	expansion = np.eye(n_class)
 	y = expansion[:, labels-1].T

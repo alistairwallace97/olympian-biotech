@@ -27,7 +27,7 @@ X_test, labels_test, list_ch_test = read_data(data_path="./data/", split="test")
 # In[3]:
 
 
-# Normalize?
+# Normalize? 
 X_train, X_test = standardize(X_train, X_test)
 
 
@@ -62,12 +62,12 @@ import tensorflow as tf
 # In[7]:
 
 
-batch_size = 20        #525#600       # Batch size  
+batch_size = 100        #525#600       # Batch size  
 seq_len = 100          # Number of steps
-learning_rate = 0.00005#0.0001
-epochs = 50
+learning_rate = 0.0001#0.0001
+epochs = 1000
 
-n_classes = 2
+n_classes = 4
 n_channels = 10
 
 
