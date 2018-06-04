@@ -13,7 +13,6 @@ df = pd.DataFrame()
 initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                         "ls":3.0, "ir":4.0, "ik":5.0,\
                         "sa":6.0}
-names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
 
 
 for file in all_files:
