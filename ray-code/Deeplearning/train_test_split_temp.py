@@ -7,6 +7,8 @@ import numpy as np
 names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
 df = pd.read_csv('combineddata.txt', header=None, names=names)
 
+
+
 import sys
 if(len(sys.argv) != 2):
     print("Error, must supply one arguement, a train\
@@ -23,6 +25,9 @@ split_index = int(np.floor(len(df.index)*train_test_ratio))
 train_df = df.iloc[:split_index]
 test_df = df.iloc[split_index:]
 
+
+
+# also not needed 
 print("split index = ", split_index)
 print("df.shape = ", df.shape)
 print("len(df.index) = ", len(df.index))
