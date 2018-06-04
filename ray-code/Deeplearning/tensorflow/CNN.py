@@ -255,8 +255,6 @@ def output_graph(preds, x_t):
 
     # get xt in a plotable form
     emg1_lst = []
-    print("len(x_t) = ", len(x_t))
-    print("len(x_t[0]) = ", len(x_t[0]))
     for i in range(len(x_t)):
         for j in range(len(x_t[0])):
             # the 3 specifies that it is emg1
@@ -268,7 +266,7 @@ def output_graph(preds, x_t):
     f = open('./data/test/CoughState.txt')
     text = f.read()
     # use a regular expression to get rid of anything 
-    # unwanted
+    # unwanted, eg letters 
     text = re.sub('[^0-9\ \.]+', " ", text)
     switch = list(text.split())
     switch[0] = 0.0
@@ -300,9 +298,13 @@ with tf.Session(graph=graph) as sess:
         batch_acc = sess.run(accuracy, feed_dict=feed)
         test_acc.append(batch_acc)
         
+        # I think y_t should probably be swapped for 
+        # logits but it's impossible for me to tell when 
+        # it is probably that the current version of the 
+        # algorithm I am working with always predicts a 
+        # cough.
         prediction = tf.argmax(y_t, 1)
         current_pred = prediction.eval(feed_dict=feed, session=sess)
-        test_3 = sess.run(tf.argmax(logits, 1), feed_dict=feed)
         test_pred = np.append(test_pred, current_pred)
         if(i==0):
             x_t_tot = x_t
