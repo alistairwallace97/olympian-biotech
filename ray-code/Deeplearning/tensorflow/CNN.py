@@ -64,8 +64,8 @@ import tensorflow as tf
 
 batch_size = 100        #525#600       # Batch size  
 seq_len = 100          # Number of steps
-learning_rate = 0.0001#0.0001
-epochs = 1000
+learning_rate = 0.0001#for 0.0001 seems to converge too fast
+epochs = 800 #enough for current data to converge
 
 n_classes = 4
 n_channels = 10
@@ -93,27 +93,33 @@ with graph.as_default():
 
 # In[9]:
 
-
+#main model, relu is chosen to be the cost function which is more commonly used than signoid and the cost function for last layer is used softmax since its a classification
+#problem but need to be test with more combination of activation functions to achieve best result
 with graph.as_default():
     # (batch, 100, 10) --> (batch, 50, 20)
     conv1 = tf.layers.conv1d(inputs=inputs_, filters=20, kernel_size=2, strides=1, 
-                             padding='same', activation = tf.sigmoid)#100,20
+                             padding='same', activation = tf.nn.relu)#100,20
     max_pool_1 = tf.layers.max_pooling1d(inputs=conv1, pool_size=2, strides=2, padding='valid')#50,20
     
     # (batch, 50, 20) --> (batch, 24, 40)
     conv2 = tf.layers.conv1d(inputs=max_pool_1, filters=40, kernel_size=2, strides=1, 
-                             padding='same', activation = tf.sigmoid)#50,40
+                             padding='same', activation = tf.nn.relu)#50,40
     max_pool_2 = tf.layers.max_pooling1d(inputs=conv2, pool_size=2, strides=2, padding='valid')#24,40?
     
     # (batch, 24, 40) --> (batch, 12, 80)
     conv3 = tf.layers.conv1d(inputs=max_pool_2, filters=80, kernel_size=2, strides=1, 
-                             padding='same', activation = tf.sigmoid)#24,80
+                             padding='same', activation = tf.nn.relu)#24,80
     max_pool_3 = tf.layers.max_pooling1d(inputs=conv3, pool_size=2, strides=2, padding='valid')#12,80
     
     # (batch, 12, 80) --> (batch, 6, 160)
     conv4 = tf.layers.conv1d(inputs=max_pool_3, filters=160, kernel_size=2, strides=1, 
-                             padding='same', activation = tf.sigmoid)#12,160
+                             padding='same', activation = tf.nn.softmax)#12,160
     max_pool_4 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#6,160
+    
+    #extra layer, seems results in overfitting
+#    conv5 = tf.layers.conv1d(inputs=max_pool_4, filters=320, kernel_size=2, strides=1, 
+#                             padding='same', activation = tf.nn.softmax)#12,320
+#    max_pool_5 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#6,320
 
 
 # Now, flatten and pass to the classifier
@@ -123,6 +129,7 @@ with graph.as_default():
 
 with graph.as_default():
     # Flatten and add dropout
+    #flat = tf.reshape(max_pool_4, (-1,3*320))
     flat = tf.reshape(max_pool_4, (-1,6*160))
     flat = tf.nn.dropout(flat, keep_prob=keep_prob_)
     
@@ -130,8 +137,8 @@ with graph.as_default():
     logits = tf.layers.dense(flat, n_classes)
     
     # Cost function and optimizer
-   # cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_))
-    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels_))
+    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels_)) #should use softmax for classification problems
+    #cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels_))
     optimizer = tf.train.AdamOptimizer(learning_rate_).minimize(cost)
     
     # Accuracy

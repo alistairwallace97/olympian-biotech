@@ -220,6 +220,7 @@ for c in df.columns:
 outputlist=[]
 
 for i in range(0,len(outputlisttemp)):
+<<<<<<< HEAD
     coughbool=0
     motionbool=0
     classi=0
@@ -239,5 +240,12 @@ for i in range(0,len(outputlisttemp)):
     elif coughbool==1 and motionbool==1:
         classi=3
     outputlist.append(classi)
+=======
+    outputbool=0
+    for j in range(0,len(outputlisttemp[i][:])):
+        if outputlisttemp[i][j-1:j+1]=='1.':
+            outputbool=1
+    outputlist.append(outputbool)
+>>>>>>> ca16d36c11161642990c4fd0fc6544b0e9522f67
 np.savetxt("output.txt", outputlist, delimiter=",", fmt='%s')
 print("done")
