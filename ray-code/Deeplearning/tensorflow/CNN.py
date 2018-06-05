@@ -112,14 +112,14 @@ with graph.as_default():
     max_pool_3 = tf.layers.max_pooling1d(inputs=conv3, pool_size=2, strides=2, padding='valid')#12,80
     
     # (batch, 12, 80) --> (batch, 6, 160)
-    conv4 = tf.layers.conv1d(inputs=max_pool_3, filters=160, kernel_size=2, strides=1, 
-                             padding='same', activation = tf.nn.softmax)#12,160
-    max_pool_4 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#6,160
+#    conv4 = tf.layers.conv1d(inputs=max_pool_3, filters=160, kernel_size=2, strides=1, 
+#                             padding='same', activation = tf.nn.softmax)#12,160
+#    max_pool_4 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#6,160
     
     #extra layer, seems results in overfitting
 #    conv5 = tf.layers.conv1d(inputs=max_pool_4, filters=320, kernel_size=2, strides=1, 
-#                             padding='same', activation = tf.nn.softmax)#12,320
-#    max_pool_5 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#6,320
+#                             padding='same', activation = tf.nn.softmax)#6,320
+#    max_pool_5 = tf.layers.max_pooling1d(inputs=conv4, pool_size=2, strides=2, padding='valid')#3,320
 
 
 # Now, flatten and pass to the classifier
@@ -130,7 +130,7 @@ with graph.as_default():
 with graph.as_default():
     # Flatten and add dropout
     #flat = tf.reshape(max_pool_4, (-1,3*320))
-    flat = tf.reshape(max_pool_4, (-1,6*160))
+    flat = tf.reshape(max_pool_3, (-1,12*80))
     flat = tf.nn.dropout(flat, keep_prob=keep_prob_)
     
     # Predictions
@@ -267,5 +267,18 @@ with tf.Session(graph=graph) as sess:
         batch_acc = sess.run(accuracy, feed_dict=feed)
         test_counter = test_counter + 1
         test_acc.append(batch_acc)
-    print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
 
+        prediction = tf.argmax(logits, 1)#(y_t,1)
+        current_pred = prediction.eval(feed_dict=feed, session=sess)
+        print(prediction)
+        print(y_test)
+        test_pred = np.append(test_pred, current_pred)
+        if(i==0):
+            x_t_tot = x_t
+        else:
+            x_t_tot = np.concatenate((x_t_tot, x_t), axis=0)
+        i += 1
+        
+    print("Test accuracy: {:.6f}".format(np.mean(test_acc)))
+    output_graph(test_pred, x_t_tot)
+    print("done")
