@@ -1,4 +1,3 @@
-# loading libraries
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
@@ -12,11 +11,11 @@ from sklearn import datasets, linear_model
 from sklearn import model_selection
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier  
 import os
 import pickle
 from sklearn.externals import joblib
+import csv
 
 def csvtodf(c):
     dfr = pd.read_csv(c, header=None, names=names)
@@ -387,67 +386,13 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
     with open(resultname, "a") as f:
         f.write(result)
 
-#for i in range(0,100):
-# define column names
-
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']
-#combineddata.txt
-#combineddata.txt
-#halfdata.txt
-#Ismaeel_test2.txt
-#Ali_test3
-#combineddata_test.txt
-path='combineddata_test.txt'
-df=csvtodf(path)
-ds=difference(df)
-#peak detection using moving avg
-#motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
-#motionlist = motiondetect(ds, motionth) #list of list, [start,end] of 100 data range
-#motionseries = pd.Series(motionlist)
-#df['Motion'] = motionseries.values
-
-#indexlist=df.index.values.tolist()
-#index=pd.Series(indexlist)
-#df['Index'] = index.values#putthing into dataframe
-
-#sensor index: 0:EMG1, 1:EMG2, 2:Vibration1, 3:Vibration2, 4:Ax, 5:Ay, 6:Az, 7:Gx, 8:Gy, 9:Gz 
-peaklist1 = peakdetection(ds, 0, 0)
-peaklist2 = peakdetection(ds, 1, 0)
-#peaklist3 = peakdetection(ds, 2, 0)
-#peaklist4 = peakdetection(ds, 3, 0)
-peaklist = peakcombine(peaklist1,peaklist2) #put common elements into a set
-peaklist=list(set(peaklist)) #region of interest, points of high differentials
-
-#print(df)
-
-#print(len(df))
-#plot region of interest
-'''
-y = [df.EMG1[x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
-plt.title("Detected peaks in signal")
-plt.xlim(0,len(df))
-plt.plot(df.EMG1, alpha=0.5, color='blue')
-plt.scatter(peaklist, y, color='red') #Plot detected peaks
-x=range(0, len(df) ,1)
-motion = np.array(df['Motion']) 	
-plt.scatter(x,motion*1000, color='yellow')
-yy = np.array(df['Cough state']) 	
-plt.plot(yy*1000, alpha=0.5, color='green') 
-plt.show()
-'''
-indexlist=df.index.values.tolist()
-indexlist=pd.Series(indexlist)
-df['Index'] = indexlist.values#putting into dataframe
-#print(indexlist)
-templist=split100(peaklist)#list of list, range of start and end of region of interest
-#feature extraction and creating output list
-X_train=featureextraction(df,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
-y_train=createoutputlist(df,templist)
-
-df_test=csvtodf('combineddata_test.txt')
+names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']  
+df_test=csvtodf('test.txt')
 #print(df_test)
 #low pass filter
-#print(df_test['Motion'])
+#indexlist=df_test.index.values.tolist()
+#index=pd.Series(indexlist)
+#df_test['Index'] = index.values#putthing into dataframe
 ds=difference(df_test)
 #indexlist=df_test.index.values.tolist()
 #index=pd.Series(indexlist)
@@ -468,22 +413,18 @@ y_testfull=createoutputlist(df_test,fulllist)
 templist=split100(peaklist)#list of list, range of start and end of region of interest
 X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_test=createoutputlist(df_test,templist)
-#pulling out index and saving it for later reference
+
+X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
+y_test=createoutputlist(df_test,templist)
+
 X_testtemp=X_test
 y_testtemp=[]
-
 testindex=X_test['Index'].tolist()
-X_train = X_train.iloc[:,0:51]
 X_test = X_test.iloc[:,0:51]
-#KNeighborsClassifier(n_neighbors=knn_n)
-#DecisionTreeClassifier() 
-knn_n=3
-model="DecisionTree"
-#classifier = KNeighborsClassifier(n_neighbors=knn_n)
-#classifier = GradientBoostingClassifier(n_estimators=5000, learning_rate=0.1, max_depth=2, random_state=0)#need to adjust learning rate 
-classifier = RandomForestClassifier(n_estimators=2000)
-classifier.fit(X_train, y_train) 
-ypred=classifier.predict(X_test)
+
+# load the model from disk
+loaded_model = joblib.load('finalized_model.sav')
+ypred=loaded_model.predict(X_test)
 
 ypredfull=[]
 for i in range (0,len(df_test),100):
@@ -493,16 +434,11 @@ for i in range (0,len(df_test),100):
         ypredindex= (X_testtemp.loc[X_testtemp.Index == i].index[0])
         ypredfull.append(ypred[ypredindex])
     
-#print(list(range(0,len(df_test),100)))
-#print(y_testtemp)
-
-
-#print ROI result
-print("ROI: ")
 print("y_test: ",  *y_test)
 print("y_pred: ",  *ypred)
-print("Index: ", *testindex)
-roiaccuracy=accuracy(y_test, ypred)
+#print("Index: ", *testindex)
+roiaccuracy=loaded_model.score(X_test, y_test)
+
 sum=0
 correct=0
 coughaccuracy=0
@@ -540,24 +476,11 @@ else:
 print("Full accuracy:  %.6f" % roiaccuracy)
 print("Coughs correctly identified:  %.6f" % coughaccuracy)
 
-filename = 'finalized_model.sav'
-pickle.dump(classifier, open(filename, 'wb'))
-
-# load the model from disk
-loaded_model = joblib.load('finalized_model.sav')
-result = loaded_model.score(X_test, y_test)
-#print(result)
 
 #producing three columns for generating graph
-graphinputlist = []
-graphinputlisttmp=[]
+open("threecolumns.txt", "w").close()
 for i in range (0,len(df_test)):
-    graphinputlisttmp.append(df_test['EMG1'][i])
-    graphinputlisttmp.append(df_test['Cough state'][i])
-    graphinputlisttmp.append(ypredfull[i//100])
-    graphinputlist.append(graphinputlisttmp)
-print(graphinputlist)
-#export result
-exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n)
-
-#print("done")
+    graphinput=str(df_test['EMG1'][i])+","+str(df_test['Cough state'][i])+","+str(ypredfull[i//100])+"\n"
+    #print(graphinput)
+    with open("threecolumns.txt", "a") as f:
+        f.write(graphinput)
