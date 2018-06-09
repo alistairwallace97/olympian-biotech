@@ -406,7 +406,7 @@ void loop() {
         counter += 1;
         
 //Index for test person, change to your index accordinglybefore testing------------------------
-        Serial.println("1");//0: Alistair 1:Sugi 2:LU 3:Ray 4:Ian 5:Ismaeel 6:Shamim
+        Serial.println("0");//0: Alistair 1:Sugi 2:LU 3:Ray 4:Ian 5:Ismaeel 6:Shamim
 
         delay(20);
  }
