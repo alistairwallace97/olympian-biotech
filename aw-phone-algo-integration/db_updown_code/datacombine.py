@@ -28,14 +28,11 @@ def peakdetection(dataset, sensor, mode):
 
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
-    #print(MA)
     sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
-    #print(dataset)
     for datapoint in range(0,len(MA)):   #eliminating NaN if NaN, rollingmean=original data value
         rollingmean = MA[listpos] #Get local mean
-        #print(rollingmean)
         if math.isnan(rollingmean) ==1: 
             MA[listpos]=dataset[dataset.columns[sensor]][listpos]
 
@@ -74,7 +71,6 @@ def peakdetection(dataset, sensor, mode):
         listpos += 1  
     if sensor == 2 or sensor == 3:
         print(sensor)
-        #print(peaklist)
         y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
         plt.title("Detected peaks in signal")
         plt.xlim(0,len(dataset))
@@ -98,12 +94,9 @@ def statedetection(list,threshold): #detect sitting or moving
     for n in range(0, 6):  
         sub=list[n][1]-list[n][0]
         sum=sum+sub
-        #if sub<threshold and list[n][1]!=0 and list[n][0]!=0:
-        #    moving = 1
     if sum<30 and list[n][1]!=0 and list[n][0]!=0:
         moving=1
 
-    #print(sum)
     return moving
 
 def butter_lowpass(cutoff, fs, order):
@@ -114,23 +107,16 @@ def butter_lowpass(cutoff, fs, order):
 def lowpassfilter(df): 
     for i in range(1, 11):
         df.iloc[:, i] = butter_lowpass_filter(df.iloc[:, i], 10, 50, 10)
-    #print(df)
     return df
 def butter_lowpass_filter(data, cutoff, fs, order):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    #y = filtfilt(b, a, data)
     y = lfilter(b, a, data) #nan here when negative values are passed into this filter
-    #print(y)
     return y
 def difference(df):
     # create feature matrix X and result vector y
     X = np.array(df[df.columns[1:11]]) 	
-    y = np.array(df[df.columns[0]])
-    #print(df[df.columns[1:11]])
-    #print(df[df.columns[0]]) 	
-    (n,m)=X.shape   #get no. of rows
-    #print(X)
-    #print(df)
+    _ = np.array(df[df.columns[0]])
+    (n,_)=X.shape   #get no. of rows
 
     count = 0
     D=[]
@@ -138,12 +124,9 @@ def difference(df):
     for i in range(1, n):
         D.append(list(map(operator.sub, X[i-1,0:10], X[i,0:10]))) #from EMG1 to Gz, calculate difference
         count=count+1
-    #Diff.extend(D)
     Diff=np.array(D)
-    #print(Diff)
 
     my_df = pd.DataFrame(Diff)
-    #print(my_df)
 
     my_df.to_csv('difference.txt', index=False, header=False)
 
@@ -201,8 +184,6 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
 
 def main(path, is_train):
 
-    #path = "./server_local_test_data/"
-    #is_train = False
     all_files = glob.glob(os.path.join(path, "*.txt")) #make list of paths
     df = pd.DataFrame()
 
@@ -234,18 +215,12 @@ def main(path, is_train):
             motionseries = pd.Series(motionlist)
             dftmp['Motion'] = motionseries.values
 
-            #print(dftmp.head())
             # Make a temporary .txt file in csv form so we can
             # look at columns
             dftmp.to_csv('tmp.txt', index=False, header=False)
-            dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-            #print(len(dftmp)//100*100)
             dftmp=dftmp[:len(dftmp)//100*100]
-            #print(motionlist)
-            #print(dftmp.iloc[8200])
             # If the person forgot to set the number, then 
             # reset the number for them automatically.
-            #print(dfnum)
             if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
                 for i in range(0,len(dftmp)):
                     dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
@@ -287,7 +262,7 @@ def main(path, is_train):
         train_df.to_csv('combineddata_train.txt', index=False, header=False)
         test_df.to_csv('combineddata_test.txt', index=False, header=False)
     else:
-        df.to_csv('graph_algo_in.txt', index=False, header=False)
+        df.to_csv('./server_local_graph/graph_algo_in.txt', index=False, header=False)
     
     print("done")
 

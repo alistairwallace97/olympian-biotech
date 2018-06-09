@@ -37,7 +37,7 @@ parser.add_argument('--no', '-n', action='store_true',
 parser.add_argument('--default', '-d', action='store_true',
                     help='Take default answer on all questions')
 
-def main():
+def main(folder, rootdir, push_pull):
     """Main program.
 
     Parse command line, then iterate over files and directories under
@@ -45,6 +45,14 @@ def main():
     directories, and avoids duplicate uploads by comparing size and
     mtime with the server.
     """
+    if(push_pull == "push"):
+        push = True
+    elif(push_pull == "pull"):
+        push = False
+    else:
+        print("invalid push_pull entry\nmust be called\
+        as 'push' to push or 'pull' to pull")
+
     args = parser.parse_args()
     if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
         print('At most one of --yes, --no, --default is allowed')
@@ -53,8 +61,8 @@ def main():
         print('--token is mandatory')
         sys.exit(2)
 
-    folder = args.folder
-    rootdir = os.path.expanduser(args.rootdir)
+    #folder = args.folder
+    #rootdir = os.path.expanduser(args.rootdir)
     print('Dropbox folder name:', folder)
     print('Local directory:', rootdir)
     if not os.path.exists(rootdir):
@@ -69,7 +77,6 @@ def main():
     for dn, dirs, files in os.walk(rootdir):
         subfolder = dn[len(rootdir):].strip(os.path.sep)
         listing = list_folder(dbx, folder, subfolder)
-        print('Descending into', subfolder, '...')
 
         # First do all the files.
         for name in files:
@@ -93,22 +100,23 @@ def main():
                     print(name, 'is already synced [stats match]')
                     return_val = False
                 else:
-                    print(name, 'exists with different stats, downloading')
                     res = download(dbx, folder, subfolder, name, False, 'not_needed')
                     with open(fullname) as f:
                         data = f.read()
                     if res == data:
                         print(name, 'is already synced [content match]')
                     else:
-                        print(name, 'has changed since last sync')
-                        if yesno('Refresh %s' % name, False, args):
+                        if(push):
                             upload(dbx, fullname, folder, subfolder, name,
                                    overwrite=True)
-                        elif yesno('Download %s' % name, False, args):
+                            print("pushed ", name, " to ", folder)
+                        elif(not push):
                             download(dbx, folder, subfolder, name, True, rootdir)
+                            print("pulled ", name, " from ", folder)
                     return_val = True
             elif yesno('Upload %s' % name, True, args):
                 upload(dbx, fullname, folder, subfolder, name)
+                return_val = True
             return return_val
 
         # Then choose which subdirectories to traverse.
@@ -159,7 +167,7 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
         path = path.replace('//', '/')
     with stopwatch('download'):
         try:
-            md, res = dbx.files_download(path)
+            _, res = dbx.files_download(path)
         except dropbox.exceptions.HttpError as err:
             print('*** HTTP error', err)
             return None
@@ -198,7 +206,6 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
         except dropbox.exceptions.ApiError as err:
             print('*** API error', err)
             return None
-    print('uploaded as', res.name.encode('utf8'))
     return res
 
 def yesno(message, default, args):
@@ -253,7 +260,6 @@ def stopwatch(message):
         yield
     finally:
         t1 = time.time()
-        print('Total elapsed time for %s: %.3f' % (message, t1 - t0))
 
 if __name__ == '__main__':
-    bool_var = main()
+    bool_var = main(folder, rootdir, push_pull)
