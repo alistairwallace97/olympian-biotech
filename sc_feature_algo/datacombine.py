@@ -19,7 +19,7 @@ from sklearn.tree import DecisionTreeClassifier
 import pickle
 from sklearn.externals import joblib
 
-def standardization(X_train):
+def standardization(X_train,motionrangelist):
     for i in range(1, 11):
         X_train.iloc[:, i]=(X_train.iloc[:, i] -X_train.iloc[:, i].mean() )/ (X_train.iloc[:, i].std())
     return X_train
@@ -28,14 +28,11 @@ def peakdetection(dataset, sensor, mode):
 
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
-    #print(MA)
     sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
-    #print(dataset)
     for datapoint in range(0,len(MA)):   #eliminating NaN if NaN, rollingmean=original data value
         rollingmean = MA[listpos] #Get local mean
-        #print(rollingmean)
         if math.isnan(rollingmean) ==1: 
             MA[listpos]=dataset[dataset.columns[sensor]][listpos]
 
@@ -73,8 +70,6 @@ def peakdetection(dataset, sensor, mode):
                 window = [] #Clear marked ROI
         listpos += 1  
     if sensor == 2 or sensor == 3:
-        print(sensor)
-        #print(peaklist)
         y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
         plt.title("Detected peaks in signal")
         plt.xlim(0,len(dataset))
@@ -103,7 +98,6 @@ def statedetection(list,threshold): #detect sitting or moving
     if sum<30 and list[n][1]!=0 and list[n][0]!=0:
         moving=1
 
-    #print(sum)
     return moving
 
 def butter_lowpass(cutoff, fs, order):
@@ -114,23 +108,17 @@ def butter_lowpass(cutoff, fs, order):
 def lowpassfilter(df): 
     for i in range(1, 11):
         df.iloc[:, i] = butter_lowpass_filter(df.iloc[:, i], 10, 50, 10)
-    #print(df)
     return df
 def butter_lowpass_filter(data, cutoff, fs, order):
     b, a = butter_lowpass(cutoff, fs, order=order)
     #y = filtfilt(b, a, data)
     y = lfilter(b, a, data) #nan here when negative values are passed into this filter
-    #print(y)
     return y
 def difference(df):
     # create feature matrix X and result vector y
     X = np.array(df[df.columns[1:11]]) 	
-    y = np.array(df[df.columns[0]])
-    #print(df[df.columns[1:11]])
-    #print(df[df.columns[0]]) 	
+    y = np.array(df[df.columns[0]])	
     (n,m)=X.shape   #get no. of rows
-    #print(X)
-    #print(df)
 
     count = 0
     D=[]
@@ -142,13 +130,11 @@ def difference(df):
     Diff=np.array(D)
     #print(Diff)
 
-    my_df = pd.DataFrame(Diff)
-    print(my_df)
+    my_df = pd.DataFrame(Diff, columns=Difflabel)
 
     my_df.to_csv('difference.txt', index=False, header=False)
 
-    ds = pd.read_csv('difference.txt')
-    print(ds)
+    ds = pd.read_csv('difference.txt', names=Difflabel)
     return ds
 def motioncorrection(list):#correct misclassified motion
     for i in range (3,len(list)-2):
@@ -161,7 +147,6 @@ def motioncorrection(list):#correct misclassified motion
         elif list[i][1] == 0 and list[i-1][1]==1 and list[i-2][1]==1 and list[i-3][1]==1 and list[i+1][1]==1:
             list[i][1]=1
     return list
-
 def motiondetect(df,motionth):#compare the number of peaks of two moving averages to detect motion
     motionlist = []#list of motions for all df elements
     motion = []#list of pairs of motion and element for every 100 elements
@@ -197,8 +182,18 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
         for j in range(0,len(motion)):
             if i >=motion[j][0] and i<motion[j][0]+100:
                 motionlist.append(motion[j][1])
-    motionlist.extend((0,0))
+    motionlist.append((0))
     return motionlist
+def motionrange(df):
+    motionrangelist=[]
+    start=0
+    for i in range(1,len(df)):
+        if df['Motion'][i]!=df['Motion'][i-1]:
+            print('change')
+            end=i
+            motionrangelist.append([start,end])
+            start=end
+    return motionrangelist
 
 path = "./data/"
 all_files = glob.glob(os.path.join(path, "*.txt")) #make list of paths
@@ -220,18 +215,20 @@ for file in all_files:
         dftmp.drop(dftmp.index[:1],inplace = True)
         dftmp.drop(dftmp.tail(1).index,inplace=True)
         #standardization of each person's file
-        dftmp = standardization(dftmp)
+        #dftmp = standardization(dftmp)
         dftmp = lowpassfilter(dftmp)
         dftmp=dftmp.dropna(how='any') 
         dftmp.to_csv('tmpdata.txt', index=False, header=False)
         dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
         ds=difference(dftmp)
+
         #peak detection using moving avg
         motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
-        motionlist = motiondetect(ds, motionth) #list of list, [start,end] of 100 data range
+        motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values
-
+        motionrangelist=motionrange(dftmp)
+        dftmp=standardization(dftmp,motionrangelist)
         #print(dftmp.head())
         # Make a temporary .txt file in csv form so we can
         # look at columns
@@ -239,6 +236,7 @@ for file in all_files:
         dfnum = pd.read_csv('tmp.txt', header=None, names=names)
         #print(len(dftmp)//100*100)
         dftmp=dftmp[:len(dftmp)//100*100]
+        standardization(dftmp)
         #print(motionlist)
         #print(dftmp.iloc[8200])
         # If the person forgot to set the number, then 
@@ -276,9 +274,8 @@ split_index = int(np.floor(len(df.index)*train_test_ratio))
 train_df = df.iloc[:split_index]
 
 test_df = df.iloc[split_index:]
-
+print("done")
 
 # Export data to combineddata file with correct numbers
-train_df.to_csv('combineddata_train.txt', index=False, header=False)
-test_df.to_csv('combineddata_test.txt', index=False, header=False)
-print("done")
+#train_df.to_csv('combineddata_train.txt', index=False, header=False)
+#test_df.to_csv('combineddata_test.txt', index=False, header=False)
