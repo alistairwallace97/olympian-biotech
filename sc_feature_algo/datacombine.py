@@ -189,7 +189,6 @@ def motionrange(df):
     start=0
     for i in range(1,len(df)):
         if df['Motion'][i]!=df['Motion'][i-1]:
-            print('change')
             end=i
             motionrangelist.append([start,end])
             start=end
@@ -236,7 +235,7 @@ for file in all_files:
         dfnum = pd.read_csv('tmp.txt', header=None, names=names)
         #print(len(dftmp)//100*100)
         dftmp=dftmp[:len(dftmp)//100*100]
-        standardization(dftmp)
+        standardization(dftmp,motionrangelist)
         #print(motionlist)
         #print(dftmp.iloc[8200])
         # If the person forgot to set the number, then 
