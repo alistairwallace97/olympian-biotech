@@ -13,23 +13,21 @@ import time
 
 
 if __name__ == '__main__':
-    #while(true): #polling the sync input
-    # check if any new test data has arrived
-    t0 = time.time()
-    if(updown.main('test_data', './server_local_test_data', "pull")):
-        print("\nThe file has changed so running datacombine\n")
-        # if so convert to the right form
-        DO_NOT_USE_datacombine_aw_changed.main('./server_local_test_data/', False)
-        print("\ndata combined/converted\n")
-        # run the model on it to get the results
-        loadtest.main()
-        print("\nmodel run\n")
-        # push the new results to the dropbox to be 
-        # displayed on the phone
-        updown.main('graph', './server_local_graph', "push")
-        print("\nnew graph files uploaded\n")       
-    else:
-        print("\n\ntest_data file has not changed")
-    print("done")
-    t1 = time.time()
-    print("Total time: {}".format(t1-t0))
+    while(True): #polling the sync input
+        # check if any new test data has arrived
+        if(updown.main('test_data', './server_local_test_data', "pull")):
+            t0 = time.time()
+            print("\nThe file has changed so running datacombine\n")
+            # if so convert to the right form
+            DO_NOT_USE_datacombine_aw_changed.main('./server_local_test_data/', False)
+            print("\ndata combined/converted\n")
+            # run the model on it to get the results
+            loadtest.main()
+            print("\nmodel run\n")
+            # push the new results to the dropbox to be 
+            # displayed on the phone
+            updown.main('graph', './server_local_graph', "push")
+            print("\nnew graph files uploaded\n")  
+            t1 = time.time()
+            print("Total time: {}".format(t1-t0))     
+            print("done")
