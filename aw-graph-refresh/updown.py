@@ -100,7 +100,6 @@ def main(folder, rootdir, push_pull):
                     print(name, 'is already synced [stats match]')
                     return_val = False
                 else:
-                    print(name, 'exists with different stats, downloading')
                     res = download(dbx, folder, subfolder, name, False, 'not_needed')
                     with open(fullname) as f:
                         data = f.read()
@@ -108,9 +107,9 @@ def main(folder, rootdir, push_pull):
                     data_str = str(data.encode("utf-8"))[2:-1]
                     if((res == data)or(res_str == data_str)):
                         print(name, 'is already synced [content match]')
+                        return_val = False
                     else:
                         print(name, 'has changed since last sync')
-                        print("push = ", push)
                         if(push):
                             upload(dbx, fullname, folder, subfolder, name,
                                    overwrite=True)
@@ -118,7 +117,7 @@ def main(folder, rootdir, push_pull):
                         elif(not push):
                             download(dbx, folder, subfolder, name, True, rootdir)
                             print("pulled ", name, " from ", folder)
-                    return_val = True
+                        return_val = True
             elif yesno('Upload %s' % name, True, args):
                 upload(dbx, fullname, folder, subfolder, name)
                 return_val = True
@@ -167,7 +166,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
 
     Return the bytes of the file, or None if it doesn't exist.
     """
-    print("entered download")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -184,7 +182,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
     return data
 
 def write_new_copy(name, data, rootdir):
-    print("entered write_new_copy")
     file_dir = rootdir + '/' + name
     file = open(file_dir,"w")
     file.write(str(data))
@@ -195,7 +192,6 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
 
     Return the request response, or None in case of error.
     """
-    print("entered upload")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')

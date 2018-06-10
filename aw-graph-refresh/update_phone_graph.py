@@ -13,6 +13,7 @@ import time
 
 
 if __name__ == '__main__':
+    #while(true): #polling the sync input
     # check if any new test data has arrived
     t0 = time.time()
     if(updown.main('test_data', './server_local_test_data', "pull")):
