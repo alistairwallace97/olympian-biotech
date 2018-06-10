@@ -27,7 +27,7 @@ parser.add_argument('folder', nargs='?', default='test_data',
                     help='Folder name in your Dropbox')
 parser.add_argument('rootdir', nargs='?', default='./server_local_test_data',
                     help='Local directory to upload')
-parser.add_argument('--token', default='ulsAbO-JC8AAAAAAAAAAIj0q7rYMktruYTB_4iLnzNEipHH7rPgoWggLXCLBNfGn',
+parser.add_argument('--token', default='oj0_wRCuyiAAAAAAAAAAGaBfHb2ZKMTXFLC3AxMzYSsXVDjWg0jAaThmG_WtGVcz',
                     help='Access token '
                     '(see https://www.dropbox.com/developers/apps)')
 parser.add_argument('--yes', '-y', action='store_true',
@@ -103,13 +103,9 @@ def main(folder, rootdir, push_pull):
                     res = download(dbx, folder, subfolder, name, False, 'not_needed')
                     with open(fullname) as f:
                         data = f.read()
-                    res_str = (str(res)[2:-1]).replace('\\r', '\\n')
-                    data_str = str(data.encode("utf-8"))[2:-1]
-                    if((res == data)or(res_str == data_str)):
+                    if res == data:
                         print(name, 'is already synced [content match]')
-                        return_val = False
                     else:
-                        print(name, 'has changed since last sync')
                         if(push):
                             upload(dbx, fullname, folder, subfolder, name,
                                    overwrite=True)
@@ -117,7 +113,7 @@ def main(folder, rootdir, push_pull):
                         elif(not push):
                             download(dbx, folder, subfolder, name, True, rootdir)
                             print("pulled ", name, " from ", folder)
-                        return_val = True
+                    return_val = True
             elif yesno('Upload %s' % name, True, args):
                 upload(dbx, fullname, folder, subfolder, name)
                 return_val = True
@@ -266,4 +262,4 @@ def stopwatch(message):
         t1 = time.time()
 
 if __name__ == '__main__':
-    bool_var = main('test_data', './server_local_test_data', 'push')
+    bool_var = main('biotech', './server_local_graph', 'push')
