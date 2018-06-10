@@ -194,6 +194,19 @@ def motionrange(df):
             start=end
     return motionrangelist
 
+def sleep_detection(df):
+    instHr = df["InstantHr"]
+    avgHr = df["AvgHr"]
+    (n,m) = df.shape 
+    asleep_list = []
+    period = 100
+    threshold = 0
+    for i in range(period):
+        asleep_list[i] = 0
+    for i in range(period,n):
+        asleep_list[i] = numpy.std(df["InstantHr"][i-period+1:i+1])
+    return pd.Series(asleep_list)
+
 pathtrain = "./traindata/"
 all_filestrain = glob.glob(os.path.join(pathtrain, "*.txt")) #make list of paths
 df = pd.DataFrame()
@@ -207,7 +220,6 @@ initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                         "ls":3.0, "ir":4.0, "ik":5.0,\
                         "sa":6.0}
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
-
 
 for file in all_filestrain:
     # Getting the file name without extension
@@ -227,7 +239,7 @@ for file in all_filestrain:
         ds=difference(dftmp)
 
         #peak detection using moving avg
-        motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
+        motionth = 0.5 #threshold for identifying motion, difference in number of peaks
         motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values

@@ -65,7 +65,7 @@ def peakdetection(dataset, sensor, mode):
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
     #print(MA)
-    sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
+    #sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
     #print(dataset)
@@ -392,14 +392,7 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
 # define column names
 
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']
-#combineddata.txt
-#combineddata.txt
-#halfdata.txt
-#Ismaeel_test2.txt
-#Ali_test3
-#combineddata_test.txt
-path='combineddata_train.txt'
-df=csvtodf(path)
+df=csvtodf('combineddata_train.txt')
 ds=difference(df)
 #peak detection using moving avg
 #motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
@@ -483,7 +476,7 @@ for i in range (0,len(df_test),100):
 
 cv_results = cross_validate(classifier, X_train, y_train, return_train_score=False, scoring = ('accuracy'))
 print(cv_results)
-#print ROI result
+#print result
 print("y_test: ",  *y_test)
 print("y_pred: ",  *ypred)
 print("Index: ", *testindex)
