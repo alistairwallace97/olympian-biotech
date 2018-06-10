@@ -352,7 +352,8 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
         f.write(result)
 
 def main():
-    df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    #df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    df_test=csvtodf('combineddata_train.txt')
     ds=difference(df_test)
     peaklist1 = peakdetection(ds, 0, 0)
     peaklist2 = peakdetection(ds, 1, 0)
