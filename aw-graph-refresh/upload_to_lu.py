@@ -27,7 +27,7 @@ parser.add_argument('folder', nargs='?', default='test_data',
                     help='Folder name in your Dropbox')
 parser.add_argument('rootdir', nargs='?', default='./server_local_test_data',
                     help='Local directory to upload')
-parser.add_argument('--token', default='ulsAbO-JC8AAAAAAAAAAIj0q7rYMktruYTB_4iLnzNEipHH7rPgoWggLXCLBNfGn',
+parser.add_argument('--token', default='oj0_wRCuyiAAAAAAAAAAGaBfHb2ZKMTXFLC3AxMzYSsXVDjWg0jAaThmG_WtGVcz',
                     help='Access token '
                     '(see https://www.dropbox.com/developers/apps)')
 parser.add_argument('--yes', '-y', action='store_true',
@@ -100,17 +100,12 @@ def main(folder, rootdir, push_pull):
                     print(name, 'is already synced [stats match]')
                     return_val = False
                 else:
-                    print(name, 'exists with different stats, downloading')
                     res = download(dbx, folder, subfolder, name, False, 'not_needed')
                     with open(fullname) as f:
                         data = f.read()
-                    res_str = (str(res)[2:-1]).replace('\\r', '\\n')
-                    data_str = str(data.encode("utf-8"))[2:-1]
-                    if((res == data)or(res_str == data_str)):
+                    if res == data:
                         print(name, 'is already synced [content match]')
                     else:
-                        print(name, 'has changed since last sync')
-                        print("push = ", push)
                         if(push):
                             upload(dbx, fullname, folder, subfolder, name,
                                    overwrite=True)
@@ -167,7 +162,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
 
     Return the bytes of the file, or None if it doesn't exist.
     """
-    print("entered download")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -184,7 +178,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
     return data
 
 def write_new_copy(name, data, rootdir):
-    print("entered write_new_copy")
     file_dir = rootdir + '/' + name
     file = open(file_dir,"w")
     file.write(str(data))
@@ -195,7 +188,6 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
 
     Return the request response, or None in case of error.
     """
-    print("entered upload")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -270,4 +262,4 @@ def stopwatch(message):
         t1 = time.time()
 
 if __name__ == '__main__':
-    bool_var = main('test_data', './server_local_test_data', 'push')
+    bool_var = main('biotech', './server_local_graph', 'push')

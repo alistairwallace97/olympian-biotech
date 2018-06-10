@@ -6,16 +6,19 @@
 # be shown on the phone app.
 
 import updown
-import datacombine
+#import datacombine
+import DO_NOT_USE_datacombine_aw_changed
 import loadtest
+import time
 
 
 if __name__ == '__main__':
     # check if any new test data has arrived
+    t0 = time.time()
     if(updown.main('test_data', './server_local_test_data', "pull")):
         print("\nThe file has changed so running datacombine\n")
         # if so convert to the right form
-        datacombine.main('./server_local_test_data/', False)
+        DO_NOT_USE_datacombine_aw_changed.main('./server_local_test_data/', False)
         print("\ndata combined/converted\n")
         # run the model on it to get the results
         loadtest.main()
@@ -27,3 +30,5 @@ if __name__ == '__main__':
     else:
         print("\n\ntest_data file has not changed")
     print("done")
+    t1 = time.time()
+    print("Total time: {}".format(t1-t0))
