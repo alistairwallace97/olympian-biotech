@@ -106,9 +106,9 @@ def main(folder, rootdir, push_pull):
                     data_str = str(data.encode("utf-8"))[2:-1]
                     if((res == data)or(res_str == data_str)):
                         print(name, 'is already synced [content match]')
+                        return_val = False
                     else:
                         print(name, 'has changed since last sync')
-                        print("push = ", push)
                         if(push):
                             upload(dbx, fullname, folder, subfolder, name,
                                    overwrite=True)
@@ -116,7 +116,7 @@ def main(folder, rootdir, push_pull):
                         elif(not push):
                             download(dbx, folder, subfolder, name, True, rootdir)
                             print("pulled ", name, " from ", folder)
-                    return_val = True
+                        return_val = True
             elif yesno('Upload %s' % name, True, args):
                 upload(dbx, fullname, folder, subfolder, name)
                 return_val = True
@@ -261,4 +261,4 @@ def stopwatch(message):
         t1 = time.time()
 
 if __name__ == '__main__':
-    bool_var = main('test_data', './server_local_test_data', 'push')
+    bool_var = main('graph', './server_local_graph', 'push')

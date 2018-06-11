@@ -25,7 +25,6 @@ def standardization(X_train, Mean, Std):
     return X_train
 
 def peakdetection(dataset, sensor, mode):
-
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
     sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
@@ -55,7 +54,6 @@ def peakdetection(dataset, sensor, mode):
     peaklist = []
     listpos = 0
 
-
     for datapoint in dataset[dataset.columns[sensor]]:
         rollingmean = MA[listpos] #Get local mean
         if (listpos > NaNcount):
@@ -76,16 +74,18 @@ def peakdetection(dataset, sensor, mode):
         plt.plot(dataset[dataset.columns[sensor]], alpha=0.5, color='blue') #Plot semi-transparent HR
         plt.plot(MA, color ='green') #Plot moving average
         plt.scatter(peaklist, y, color='red') #Plot detected peaks
-        yy = np.array(df['Cough state']) 	
+        yy = np.array(df['CoughState']) 	
         plt.plot(yy, alpha=0.5, color='green') 
         plt.show()
     return peaklist
+
 def peakcount(list, threshold1, threshold2):#measuring number of peaks in between two thresholds
     count = 0
     for i in range (0,len(list)):
         if list[i]>threshold1 and list[i]<threshold2:
             count+=1
     return count
+
 def statedetection(list,threshold): #detect sitting or moving
     sub=0
     sum=0
@@ -93,11 +93,8 @@ def statedetection(list,threshold): #detect sitting or moving
     for n in range(0, 6):  
         sub=list[n][1]-list[n][0]
         sum=sum+sub
-        #if sub<threshold and list[n][1]!=0 and list[n][0]!=0:
-        #    moving = 1
     if sum<30 and list[n][1]!=0 and list[n][0]!=0:
         moving=1
-
     return moving
 
 def butter_lowpass(cutoff, fs, order):
@@ -105,37 +102,34 @@ def butter_lowpass(cutoff, fs, order):
     normal_cutoff = cutoff / nyq
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
     return b, a
+
 def lowpassfilter(df): 
     for i in range(1, 11):
         df.iloc[:, i] = butter_lowpass_filter(df.iloc[:, i], 10, 50, 10)
     return df
+
 def butter_lowpass_filter(data, cutoff, fs, order):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    #y = filtfilt(b, a, data)
     y = lfilter(b, a, data) #nan here when negative values are passed into this filter
     return y
+
 def difference(df):
     # create feature matrix X and result vector y
     X = np.array(df[df.columns[1:11]]) 	
     y = np.array(df[df.columns[0]])	
     (n,m)=X.shape   #get no. of rows
-
     count = 0
     D=[]
     Difflabel=['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     for i in range(1, n):
         D.append(list(map(operator.sub, X[i-1,0:10], X[i,0:10]))) #from EMG1 to Gz, calculate difference
         count=count+1
-    #Diff.extend(D)
     Diff=np.array(D)
-    #print(Diff)
-
     my_df = pd.DataFrame(Diff, columns=Difflabel)
-
     my_df.to_csv('difference.txt', index=False, header=False)
-
     ds = pd.read_csv('difference.txt', names=Difflabel)
     return ds
+
 def motioncorrection(list):#correct misclassified motion
     for i in range (3,len(list)-2):
         if list[i][1] == 1 and list[i-1][1]==0 and list[i-2][1]==0 and list[i+1][1]==0 and list[i+2][1]==0:
@@ -184,6 +178,7 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
                 motionlist.append(motion[j][1])
     motionlist.append((0))
     return motionlist
+
 def motionrange(df):
     motionrangelist=[]
     start=0
@@ -195,17 +190,37 @@ def motionrange(df):
     return motionrangelist
 
 def sleep_detection(df):
-    instHr = df["InstantHr"]
-    avgHr = df["AvgHr"]
-    (n,m) = df.shape 
+    (n,_) = df.shape 
     asleep_list = []
-    period = 100
-    threshold = 0
-    for i in range(period):
-        asleep_list[i] = 0
-    for i in range(period,n):
-        asleep_list[i] = numpy.std(df["InstantHr"][i-period+1:i+1])
+    period = 3000                   #One minute
+    if(n > period):
+        std_dev_list = []
+        threshold = 65
+        for i in range(period):
+            std_dev_list.append(45.0)
+            asleep_list.append(0)
+        for i in range(period,n):
+            std_dev_list.append(np.std(df["InstantHr"][i-period+1:i+1]))
+            if(std_dev_list[i] < threshold):
+                # && df["InstantHr"][i]<df["AvgHr"][i]
+                # potentially add this in as if you are 
+                # sleeping you Hr should also be pretty low
+                asleep_list.append(1)
+            else:
+                asleep_list.append(0)  
+        std_mean = np.mean(std_dev_list[period:])
+        for i in range(period):
+            std_dev_list[i] = std_mean
+        # left in for working out a better threshold
+        # value for if someone is sleeping or not
+        #print("np.mean(std_dev_list[period:] = ", np.mean(std_dev_list[period:]))
+        #print("np.std(std_dev_list) = ", np.std(std_dev_list))
+        #print("min(std_dev_list) = ", min(std_dev_list))
+        #print("max(std_dev_list) = ", max(std_dev_list))
+    else:
+        asleep_list = [0]*n
     return pd.Series(asleep_list)
+
 
 pathtrain = "./traindata/"
 all_filestrain = glob.glob(os.path.join(pathtrain, "*.txt")) #make list of paths
@@ -219,7 +234,8 @@ dftest = pd.DataFrame()
 initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                         "ls":3.0, "ir":4.0, "ik":5.0,\
                         "sa":6.0}
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
+names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+
 
 for file in all_filestrain:
     # Getting the file name without extension
@@ -231,7 +247,6 @@ for file in all_filestrain:
         dftmp.drop(dftmp.index[:1],inplace = True)
         dftmp.drop(dftmp.tail(1).index,inplace=True)
         #standardization of each person's file
-        #dftmp = standardization(dftmp)
         dftmp = lowpassfilter(dftmp)
         dftmp=dftmp.dropna(how='any') 
         dftmp.to_csv('tmpdata.txt', index=False, header=False)
@@ -243,21 +258,20 @@ for file in all_filestrain:
         motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values
-        #motionrangelist=motionrange(dftmp)
         start=0
         end=100
+
+        #see if sleeping
+        sleep_series = sleep_detection(dftmp)
+        dftmp['Sleeping'] = sleep_series.values
 
         # Make a temporary .txt file in csv form so we can
         # look at columns
         dftmp.to_csv('tmp.txt', index=False, header=False)
         dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-        #print(len(dftmp)//100*100)
         dftmp=dftmp[:len(dftmp)//100*100]
-        #print(motionlist)
-        #print(dftmp.iloc[8200])
         # If the person forgot to set the number, then 
         # reset the number for them automatically.
-        #print(dfnum)
         if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
             for i in range(0,len(dftmp)):
                 dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
@@ -281,7 +295,6 @@ for file in all_filestest:
         dftmp.drop(dftmp.index[:1],inplace = True)
         dftmp.drop(dftmp.tail(1).index,inplace=True)
         #standardization of each person's file
-        #dftmp = standardization(dftmp)
         dftmp = lowpassfilter(dftmp)
         dftmp=dftmp.dropna(how='any') 
         dftmp.to_csv('tmpdata.txt', index=False, header=False)
@@ -293,21 +306,21 @@ for file in all_filestest:
         motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values
-        #motionrangelist=motionrange(dftmp)
         start=0
         end=100
-        
+
+        #see if sleeping
+        sleep_series = sleep_detection(dftmp)
+        dftmp['Sleeping'] = sleep_series.values
+
+
         # Make a temporary .txt file in csv form so we can
         # look at columns
         dftmp.to_csv('tmp.txt', index=False, header=False)
         dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-        #print(len(dftmp)//100*100)
         dftmp=dftmp[:len(dftmp)//100*100]
-        #print(motionlist)
-        #print(dftmp.iloc[8200])
         # If the person forgot to set the number, then 
         # reset the number for them automatically.
-        #print(dfnum)
         if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
             for i in range(0,len(dftmp)):
                 dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
@@ -316,7 +329,9 @@ for file in all_filestest:
 dftest=standardization(dftest, Mean, Std)
 dftest.to_csv('combineddata_test.txt', index=False, header=False)
 
-# Delete temporary .txt file for reseting the person number
-#os.remove("tmp.txt")
+# Delete temporary .txt files to avoid clutter
+os.remove("tmp.txt")
+os.remove("difference.txt")
+os.remove("tmpdata.txt")
 
 print("done")
