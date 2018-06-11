@@ -221,117 +221,153 @@ def sleep_detection(df):
         asleep_list = [0]*n
     return pd.Series(asleep_list)
 
+def main(mode):
+    initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
+                            "ls":3.0, "ir":4.0, "ik":5.0,\
+                            "sa":6.0, "te":7.0}
+    names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+    Mean=[]
+    Std=[]
 
-pathtrain = "./traindata/"
-all_filestrain = glob.glob(os.path.join(pathtrain, "*.txt")) #make list of paths
-df = pd.DataFrame()
+    if((mode == 'train') or (mode == 'both')):
+        pathtrain = "./traindata/"
+        all_filestrain = glob.glob(os.path.join(pathtrain, "*.txt")) #make list of paths
+        df = pd.DataFrame()
 
-pathtest = "./testdata/"
-all_filestest = glob.glob(os.path.join(pathtest, "*.txt")) #make list of paths
-dftest = pd.DataFrame()
+        for file in all_filestrain:
+            # Getting the file name without extension
+            file_name = os.path.splitext(os.path.basename(file))[0]
+            if(file_name[0:2] != '00'):        
+                # Reading the file content to create a DataFrame
+                dftmp = pd.read_csv(file, header=None, names=names, sep=',').convert_objects(convert_numeric=True)
+                #drop the first and last line of code which are corrupted by the start/stop action
+                dftmp.drop(dftmp.index[:1],inplace = True)
+                dftmp.drop(dftmp.tail(1).index,inplace=True)
+                #standardization of each person's file
+                dftmp = lowpassfilter(dftmp)
+                dftmp=dftmp.dropna(how='any') 
+                dftmp.to_csv('tmpdata.txt', index=False, header=False)
+                dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
+                ds=difference(dftmp)
+
+                #peak detection using moving avg
+                motionth = 0.5 #threshold for identifying motion, difference in number of peaks
+                motionlist = motiondetect(ds, motionth)
+                motionseries = pd.Series(motionlist)
+                dftmp['Motion'] = motionseries.values
+                start=0
+                end=100
+
+                #see if sleeping
+                sleep_series = sleep_detection(dftmp)
+                dftmp['Sleeping'] = sleep_series.values
+
+                # Make a temporary .txt file in csv form so we can
+                # look at columns
+                dftmp.to_csv('tmp.txt', index=False, header=False)
+                dfnum = pd.read_csv('tmp.txt', header=None, names=names)
+                dftmp=dftmp[:len(dftmp)//100*100]
+                # If the person forgot to set the number, then 
+                # reset the number for them automatically.
+                if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
+                    for i in range(0,len(dftmp)):
+                        dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
+
+                df = df.append(dftmp)
+        for i in range(1, 11):
+            Mean.append(df.iloc[:, i].mean())
+            Std.append(df.iloc[:, i].std())
+        MeanStd=[]
+        MeanStd.append(Mean)
+        MeanStd.append(Std)
+        filename = open('meanstd.txt', 'w')
+        for item in MeanStd:
+            filename.write("%s\n" % item)
+        df=standardization(df, Mean, Std)
+        df.to_csv('combineddata_train.txt', index=False, header=False)
+
+    if((mode == 'test')or(mode == 'both')or(mode == 'update_phone_graph')):
+        if(mode == 'update_phone_graph'):
+            pathtest = "./server_local_test_data/"
+        else:
+            pathtest = "./testdata/"
+        all_filestest = glob.glob(os.path.join(pathtest, "*.txt")) #make list of paths
+        dftest = pd.DataFrame()
+
+        for file in all_filestest:
+            # Getting the file name without extension
+            file_name = os.path.splitext(os.path.basename(file))[0]
+            if(file_name[0:2] != '00'):        
+                # Reading the file content to create a DataFrame
+                dftmp = pd.read_csv(file, header=None, names=names, sep=',').convert_objects(convert_numeric=True)
+                #drop the first and last line of code which are corrupted by the start/stop action
+                dftmp.drop(dftmp.index[:1],inplace = True)
+                dftmp.drop(dftmp.tail(1).index,inplace=True)
+                #standardization of each person's file
+                dftmp = lowpassfilter(dftmp)
+                dftmp=dftmp.dropna(how='any') 
+                dftmp.to_csv('tmpdata.txt', index=False, header=False)
+                dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
+                ds=difference(dftmp)
+
+                #peak detection using moving avg
+                motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
+                motionlist = motiondetect(ds, motionth)
+                motionseries = pd.Series(motionlist)
+                dftmp['Motion'] = motionseries.values
+                start=0
+                end=100
+
+                #see if sleeping
+                sleep_series = sleep_detection(dftmp)
+                dftmp['Sleeping'] = sleep_series.values
 
 
-initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
-                        "ls":3.0, "ir":4.0, "ik":5.0,\
-                        "sa":6.0}
-names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+                # Make a temporary .txt file in csv form so we can
+                # look at columns
+                dftmp.to_csv('tmp.txt', index=False, header=False)
+                dfnum = pd.read_csv('tmp.txt', header=None, names=names)
+                dftmp=dftmp[:len(dftmp)//100*100]
+                # If the person forgot to set the number, then 
+                # reset the number for them automatically.
+                if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
+                    for i in range(0,len(dftmp)):
+                        dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
+                dftest = dftest.append(dftmp)
+        if(mode != 'both'):
+            filename = open("meanstd.txt")
+            MeanStdlist = filename.readlines()
+            Mean=MeanStdlist[0]
+            Mean = Mean.replace("[", "")
+            Mean = Mean.replace("]", "")
+            Mean=[float(s) for s in Mean.replace("\n", "").split(',')]
+            Std=MeanStdlist[1]
+            Std = Std.replace("[", "")
+            Std = Std.replace("]", "")
+            Std=[float(s) for s in Std.replace("\n", "").split(',')]
+            for i in range(1, 11):
+                Mean.append(dftest.iloc[:, i].mean())
+                Std.append(dftest.iloc[:, i].std())  
+            
 
+        dftest=standardization(dftest, Mean, Std)   
 
-for file in all_filestrain:
-    # Getting the file name without extension
-    file_name = os.path.splitext(os.path.basename(file))[0]
-    if(file_name[0:2] != '00'):        
-        # Reading the file content to create a DataFrame
-        dftmp = pd.read_csv(file, header=None, names=names, sep=',').convert_objects(convert_numeric=True)
-        #drop the first and last line of code which are corrupted by the start/stop action
-        dftmp.drop(dftmp.index[:1],inplace = True)
-        dftmp.drop(dftmp.tail(1).index,inplace=True)
-        #standardization of each person's file
-        dftmp = lowpassfilter(dftmp)
-        dftmp=dftmp.dropna(how='any') 
-        dftmp.to_csv('tmpdata.txt', index=False, header=False)
-        dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
-        ds=difference(dftmp)
+        if(mode == 'update_phone_graph'):
+            dftest.to_csv('./server_local_graph/graph_algo_in.txt', index=False, header=False)
+        else:
+            dftest.to_csv('combineddata_test.txt', index=False, header=False)
 
-        #peak detection using moving avg
-        motionth = 0.5 #threshold for identifying motion, difference in number of peaks
-        motionlist = motiondetect(ds, motionth)
-        motionseries = pd.Series(motionlist)
-        dftmp['Motion'] = motionseries.values
-        start=0
-        end=100
+    # Delete temporary .txt files to avoid clutter
+    os.remove("tmp.txt")
+    os.remove("difference.txt")
+    os.remove("tmpdata.txt")
 
-        #see if sleeping
-        sleep_series = sleep_detection(dftmp)
-        dftmp['Sleeping'] = sleep_series.values
+    print("done")
 
-        # Make a temporary .txt file in csv form so we can
-        # look at columns
-        dftmp.to_csv('tmp.txt', index=False, header=False)
-        dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-        dftmp=dftmp[:len(dftmp)//100*100]
-        # If the person forgot to set the number, then 
-        # reset the number for them automatically.
-        if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
-            for i in range(0,len(dftmp)):
-                dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
-
-        df = df.append(dftmp)
-Mean=[]
-Std=[]
-for i in range(1, 11):
-    Mean.append(df.iloc[:, i].mean())
-    Std.append(df.iloc[:, i].std())
-df=standardization(df, Mean, Std)
-df.to_csv('combineddata_train.txt', index=False, header=False)
-
-for file in all_filestest:
-    # Getting the file name without extension
-    file_name = os.path.splitext(os.path.basename(file))[0]
-    if(file_name[0:2] != '00'):        
-        # Reading the file content to create a DataFrame
-        dftmp = pd.read_csv(file, header=None, names=names, sep=',').convert_objects(convert_numeric=True)
-        #drop the first and last line of code which are corrupted by the start/stop action
-        dftmp.drop(dftmp.index[:1],inplace = True)
-        dftmp.drop(dftmp.tail(1).index,inplace=True)
-        #standardization of each person's file
-        dftmp = lowpassfilter(dftmp)
-        dftmp=dftmp.dropna(how='any') 
-        dftmp.to_csv('tmpdata.txt', index=False, header=False)
-        dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
-        ds=difference(dftmp)
-
-        #peak detection using moving avg
-        motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
-        motionlist = motiondetect(ds, motionth)
-        motionseries = pd.Series(motionlist)
-        dftmp['Motion'] = motionseries.values
-        start=0
-        end=100
-
-        #see if sleeping
-        sleep_series = sleep_detection(dftmp)
-        dftmp['Sleeping'] = sleep_series.values
-
-
-        # Make a temporary .txt file in csv form so we can
-        # look at columns
-        dftmp.to_csv('tmp.txt', index=False, header=False)
-        dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-        dftmp=dftmp[:len(dftmp)//100*100]
-        # If the person forgot to set the number, then 
-        # reset the number for them automatically.
-        if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
-            for i in range(0,len(dftmp)):
-                dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
-
-        dftest = dftest.append(dftmp)
-dftest=standardization(dftest, Mean, Std)
-dftest.to_csv('combineddata_test.txt', index=False, header=False)
-
-# Delete temporary .txt files to avoid clutter
-os.remove("tmp.txt")
-os.remove("difference.txt")
-os.remove("tmpdata.txt")
-
-print("done")
+if __name__ == '__main__':
+    mode = input('do you want to:\n\t-test, train, both or update_phone_graph\n>')
+    if((mode == 'test')or(mode == 'train')\
+            or(mode == 'both')or(mode == 'update_phone_graph')):
+        main(mode)
+    else:
+        print("invalid input, exiting")

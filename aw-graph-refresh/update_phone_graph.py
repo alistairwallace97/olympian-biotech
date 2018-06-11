@@ -26,7 +26,7 @@ if __name__ == '__main__':
             print("\nmodel run\n")
             # push the new results to the dropbox to be 
             # displayed on the phone
-            updown.main('graph', './server_local_graph', "push")
+            updown.main('graph_test', './server_local_graph', "push")
             print("\nnew graph files uploaded\n")  
             t1 = time.time()
             print("Total time: {}".format(t1-t0))     
