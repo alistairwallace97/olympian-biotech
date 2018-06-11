@@ -417,9 +417,9 @@ def main():
     print("Number of coughs identified: ",predcoughcount)
 
     #producing three columns for generating graph
-    open("./server_local_graph/graph.txt", "w").close()
+    open("./server_local_graph/graph_test.txt", "w").close()
 
-    f= open("./server_local_graph/graph.txt", "a")
+    f= open("./server_local_graph/graph_test.txt", "a")
     f.write(str(predcoughcount)+"\n")
     for i in range (0,len(df_test)):
         graphinput=str(df_test['EMG1'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//100])+","+str(df_test['Motion'][i])+"\n"

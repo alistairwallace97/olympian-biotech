@@ -120,6 +120,8 @@ def main(folder, rootdir, push_pull):
             elif yesno('Upload %s' % name, True, args):
                 upload(dbx, fullname, folder, subfolder, name)
                 return_val = True
+            elif not yesno('Confirm Upload %s' % name, True, args):
+                return_val = False
             return return_val
 
         # Then choose which subdirectories to traverse.
@@ -163,7 +165,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
     """Download a file.
     Return the bytes of the file, or None if it doesn't exist.
     """
-    print("entered download")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -180,7 +181,6 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
     return data
 
 def write_new_copy(name, data, rootdir):
-    print("entered write_new_copy")
     file_dir = rootdir + '/' + name
     file = open(file_dir,"w")
     file.write(str(data))
@@ -190,7 +190,6 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
     """Upload a file.
     Return the request response, or None in case of error.
     """
-    print("entered upload")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -261,4 +260,4 @@ def stopwatch(message):
         t1 = time.time()
 
 if __name__ == '__main__':
-    bool_var = main('graph', './server_local_graph', 'push')
+    bool_var = main('test_data', './tmp', 'push')
