@@ -1,5 +1,4 @@
 """Upload the contents of your Downloads folder to Dropbox.
-
 This is an example app for API v2.
 """
 
@@ -39,7 +38,6 @@ parser.add_argument('--default', '-d', action='store_true',
 
 def main(folder, rootdir, push_pull):
     """Main program.
-
     Parse command line, then iterate over files and directories under
     rootdir and upload all files.  Skips some temporary files and
     directories, and avoids duplicate uploads by comparing size and
@@ -100,6 +98,7 @@ def main(folder, rootdir, push_pull):
                     print(name, 'is already synced [stats match]')
                     return_val = False
                 else:
+                    print(name, 'exists with different stats, downloading')
                     res = download(dbx, folder, subfolder, name, False, 'not_needed')
                     with open(fullname) as f:
                         data = f.read()
@@ -141,7 +140,6 @@ def main(folder, rootdir, push_pull):
 
 def list_folder(dbx, folder, subfolder):
     """List a folder.
-
     Return a dict mapping unicode filenames to
     FileMetadata|FolderMetadata entries.
     """
@@ -163,9 +161,9 @@ def list_folder(dbx, folder, subfolder):
 
 def download(dbx, folder, subfolder, name, write_copy, rootdir):
     """Download a file.
-
     Return the bytes of the file, or None if it doesn't exist.
     """
+    print("entered download")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -182,6 +180,7 @@ def download(dbx, folder, subfolder, name, write_copy, rootdir):
     return data
 
 def write_new_copy(name, data, rootdir):
+    print("entered write_new_copy")
     file_dir = rootdir + '/' + name
     file = open(file_dir,"w")
     file.write(str(data))
@@ -189,9 +188,9 @@ def write_new_copy(name, data, rootdir):
 
 def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
     """Upload a file.
-
     Return the request response, or None in case of error.
     """
+    print("entered upload")
     path = '/%s/%s/%s' % (folder, subfolder.replace(os.path.sep, '/'), name)
     while '//' in path:
         path = path.replace('//', '/')
@@ -214,15 +213,11 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
 
 def yesno(message, default, args):
     """Handy helper function to ask a yes/no question.
-
     Command line arguments --yes or --no force the answer;
     --default to force the default answer.
-
     Otherwise a blank line returns the default, and answering
     y/yes or n/no returns True or False.
-
     Retry on unrecognized answer.
-
     Special answers:
     - q or quit exits the program
     - p or pdb invokes the debugger

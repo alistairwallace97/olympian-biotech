@@ -17,6 +17,7 @@ from sklearn.tree import DecisionTreeClassifier
 import os
 import pickle
 from sklearn.externals import joblib
+from sklearn.model_selection import cross_validate
 
 def csvtodf(c):
     dfr = pd.read_csv(c, header=None, names=names)
@@ -64,7 +65,7 @@ def peakdetection(dataset, sensor, mode):
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
     #print(MA)
-    sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
+    #sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
     #print(dataset)
@@ -391,14 +392,7 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
 # define column names
 
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']
-#combineddata.txt
-#combineddata.txt
-#halfdata.txt
-#Ismaeel_test2.txt
-#Ali_test3
-#combineddata_test.txt
-path='combineddata_test.txt'
-df=csvtodf(path)
+df=csvtodf('combineddata_train.txt')
 ds=difference(df)
 #peak detection using moving avg
 #motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
@@ -422,49 +416,32 @@ peaklist=list(set(peaklist)) #region of interest, points of high differentials
 
 #print(len(df))
 #plot region of interest
-'''
-y = [df.EMG1[x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
-plt.title("Detected peaks in signal")
-plt.xlim(0,len(df))
-plt.plot(df.EMG1, alpha=0.5, color='blue')
-plt.scatter(peaklist, y, color='red') #Plot detected peaks
-x=range(0, len(df) ,1)
-motion = np.array(df['Motion']) 	
-plt.scatter(x,motion*1000, color='yellow')
-yy = np.array(df['Cough state']) 	
-plt.plot(yy*1000, alpha=0.5, color='green') 
-plt.show()
-'''
+
 indexlist=df.index.values.tolist()
 indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values#putting into dataframe
-#print(indexlist)
-templist=split100(peaklist)#list of list, range of start and end of region of interest
-#feature extraction and creating output list
+
+peaklist=indexlist
+templist=split100(peaklist)
+
 X_train=featureextraction(df,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_train=createoutputlist(df,templist)
 
 df_test=csvtodf('combineddata_test.txt')
-#print(df_test)
-#low pass filter
-#print(df_test['Motion'])
+
 ds=difference(df_test)
-#indexlist=df_test.index.values.tolist()
-#index=pd.Series(indexlist)
-#df_test['Index'] = index.values#putthing into dataframe
+
 #sensor index: 0:EMG1, 1:EMG2, 2:Vibration1, 3:Vibration2, 4:Ax, 5:Ay, 6:Az, 7:Gx, 8:Gy, 9:Gz 
-peaklist1 = peakdetection(ds, 0, 0)
-peaklist2 = peakdetection(ds, 1, 0)
-#peaklist3 = peakdetection(ds, 2, 0)
-#peaklist4 = peakdetection(ds, 3, 0)
-peaklist = peakcombine(peaklist1,peaklist2) #put common elements into a set
-peaklist=list(set(peaklist)) #region of interest, points of high differentials
+
 indexlist=df_test.index.values.tolist()
 indexlisttemp=indexlist
 indexlist=pd.Series(indexlist)
 df_test['Index'] = indexlist.values#putthing into dataframe
+
 fulllist=split100(indexlisttemp)
 y_testfull=createoutputlist(df_test,fulllist)
+
+peaklist=indexlist
 templist=split100(peaklist)#list of list, range of start and end of region of interest
 X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_test=createoutputlist(df_test,templist)
@@ -473,15 +450,16 @@ X_testtemp=X_test
 y_testtemp=[]
 
 testindex=X_test['Index'].tolist()
+#print(X_train.iloc[:,0:51])
 X_train = X_train.iloc[:,0:51]
 X_test = X_test.iloc[:,0:51]
 #KNeighborsClassifier(n_neighbors=knn_n)
 #DecisionTreeClassifier() 
-knn_n=3
+knn_n=5
 model="DecisionTree"
 #classifier = KNeighborsClassifier(n_neighbors=knn_n)
 #classifier = GradientBoostingClassifier(n_estimators=5000, learning_rate=0.1, max_depth=2, random_state=0)#need to adjust learning rate 
-classifier = RandomForestClassifier(n_estimators=2000)
+classifier = RandomForestClassifier(n_estimators=1000)
 classifier.fit(X_train, y_train) 
 ypred=classifier.predict(X_test)
 
@@ -496,9 +474,9 @@ for i in range (0,len(df_test),100):
 #print(list(range(0,len(df_test),100)))
 #print(y_testtemp)
 
-
-#print ROI result
-print("ROI: ")
+cv_results = cross_validate(classifier, X_train, y_train, return_train_score=False, scoring = ('accuracy'))
+print(cv_results)
+#print result
 print("y_test: ",  *y_test)
 print("y_pred: ",  *ypred)
 print("Index: ", *testindex)
@@ -519,7 +497,7 @@ print("ROI accuracy:  %.6f" % roiaccuracy)
 print("Coughs correctly identified:  %.6f" % coughaccuracy)
 
 #print full result
-
+'''
 print("Full: ")
 print("y_test: ",  *y_testfull)
 print("y_pred: ",  *ypredfull)
@@ -539,7 +517,7 @@ else:
     coughaccuracy=correct/sum
 print("Full accuracy:  %.6f" % roiaccuracy)
 print("Coughs correctly identified:  %.6f" % coughaccuracy)
-
+'''
 filename = 'finalized_model.sav'
 pickle.dump(classifier, open(filename, 'wb'))
 
@@ -556,7 +534,7 @@ for i in range (0,len(df_test)):
     graphinputlisttmp.append(df_test['Cough state'][i])
     graphinputlisttmp.append(ypredfull[i//100])
     graphinputlist.append(graphinputlisttmp)
-print(graphinputlist)
+#print(graphinputlist)
 #export result
 exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n)
 

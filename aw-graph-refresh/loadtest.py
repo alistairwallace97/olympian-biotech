@@ -94,7 +94,6 @@ def peakdetection(dataset, sensor, mode):
                 window = [] #Clear marked ROI
         listpos += 1  
     if sensor == 2 or sensor == 3:
-        print(sensor)
         y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
         plt.title("Detected peaks in signal")
         plt.xlim(0,len(dataset))
@@ -353,22 +352,27 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
 
 def main():
     df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    #df_test=csvtodf('combineddata_test.txt')
     ds=difference(df_test)
-    peaklist1 = peakdetection(ds, 0, 0)
-    peaklist2 = peakdetection(ds, 1, 0)
-    peaklist = peakcombine(peaklist1,peaklist2) #put common elements into a set
+
+
+    indexlist=df_test.index.values.tolist()
+    indexlisttemp=indexlist
+    indexlist=pd.Series(indexlist)
+    df_test['Index'] = indexlist.values#putthing into dataframe
+
+    peaklist=indexlist
     peaklist=list(set(peaklist)) #region of interest, points of high differentials
     indexlist=df_test.index.values.tolist()
     indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
     df_test['Index'] = indexlist.values#putthing into dataframe
     fulllist=split100(indexlisttemp)
-    y_testfull=createoutputlist(df_test,fulllist)
     templist=split100(peaklist)#list of list, range of start and end of region of interest
-    X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
+    X_test=featureextraction(df_test,templist)#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
     y_test=createoutputlist(df_test,templist)
 
-    X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
+    X_test=featureextraction(df_test,templist)#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
     y_test=createoutputlist(df_test,templist)
 
     X_testtemp=X_test
@@ -379,64 +383,49 @@ def main():
     # load the model from disk
     loaded_model = joblib.load('finalized_model.sav')
     ypred=loaded_model.predict(X_test)
-
-    ypredfull=[]
-    for i in range (0,len(df_test),100):
-        if (X_testtemp.loc[X_testtemp.Index == i]).empty:
-            ypredfull.append(0)
-        else:
-            ypredindex= (X_testtemp.loc[X_testtemp.Index == i].index[0])
-            ypredfull.append(ypred[ypredindex])
         
     print("y_test: ",  *y_test)
     print("y_pred: ",  *ypred)
+    print("Index: ", *testindex)
     roiaccuracy=loaded_model.score(X_test, y_test)
 
     sum=0
     correct=0
-    coughaccuracy=0
-    for i in range(0,len(y_test)):
+
+    print("Accuracy:  %.6f" % roiaccuracy)
+
+    testconsecutiveindex=[] #list of index of cough signals overlapping two data groups
+    predconsecutiveindex=[]
+
+    testcoughcount=0
+    for i in range (0,len(y_test)):
         if y_test[i]==1:
-            if ypred[i]==1:
-                correct+=1
-            sum+=1
-    if sum==0:
-        coughaccuracy=-1
-    else:
-        coughaccuracy=correct/sum
-    print("ROI accuracy:  %.6f" % roiaccuracy)
-    print("Coughs correctly identified:  %.6f" % coughaccuracy)
+            testcoughcount+=1
+        if i>0 and y_test[i]==1 and y_test[i-1] == y_test[i]:
+            if df_test['Cough state'][i*100]==1 and df_test['Cough state'][i*100-1]==1:
+                testconsecutiveindex.append(i)
+    testcoughcount=testcoughcount-len(testconsecutiveindex)
+    print("Number of coughs in test data: ",testcoughcount)
 
-    #print full result
-
-    print("Full: ")
-    print("y_test: ",  *y_testfull)
-    print("y_pred: ",  *ypredfull)
-    print("Index: ", *list(range(0,len(df_test),100)))
-    roiaccuracy=accuracy(y_testfull, ypredfull)
-    sum=0
-    correct=0
-    coughaccuracy=0
-    for i in range(0,len(y_testfull)):
-        if y_testfull[i]==1:
-            if ypredfull[i]==1:
-                correct+=1
-            sum+=1
-    if sum==0:
-        coughaccuracy=-1
-    else:
-        coughaccuracy=correct/sum
-    print("Full accuracy:  %.6f" % roiaccuracy)
-    print("Coughs correctly identified:  %.6f" % coughaccuracy)
-
+    predcoughcount=0
+    for i in range (0,len(ypred)):
+        if ypred[i]==1:
+            predcoughcount+=1
+    for i in range (0,len(testconsecutiveindex)):
+        if ypred[testconsecutiveindex[i]]==1 and ypred[testconsecutiveindex[i]-1]==1:
+            predcoughcount-=1
+    print("Number of coughs identified: ",predcoughcount)
 
     #producing three columns for generating graph
     open("./server_local_graph/graph.txt", "w").close()
+
+    f= open("./server_local_graph/graph.txt", "a")
+    f.write(str(predcoughcount)+"\n")
     for i in range (0,len(df_test)):
-        graphinput=str(df_test['EMG1'][i])+","+str(df_test['Cough state'][i])+","+str(ypredfull[i//100])+"\n"
-        #print(graphinput)
-        with open("./server_local_graph/graph.txt", "a") as f:
-            f.write(graphinput)
+        graphinput=str(df_test['EMG1'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//100])+","+str(df_test['Motion'][i])+"\n"
+        f.write(graphinput)
+    f.close()
+
 
 if __name__ == '__main__':
     main()

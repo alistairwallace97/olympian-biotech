@@ -254,7 +254,7 @@ for file in all_filestrain:
         ds=difference(dftmp)
 
         #peak detection using moving avg
-        motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
+        motionth = 0.5 #threshold for identifying motion, difference in number of peaks
         motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values
