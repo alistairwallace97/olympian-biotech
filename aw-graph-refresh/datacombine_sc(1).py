@@ -76,7 +76,7 @@ def peakdetection(dataset, sensor, mode):
         plt.plot(dataset[dataset.columns[sensor]], alpha=0.5, color='blue') #Plot semi-transparent HR
         plt.plot(MA, color ='green') #Plot moving average
         plt.scatter(peaklist, y, color='red') #Plot detected peaks
-        yy = np.array(df['CoughState']) 	
+        yy = np.array(df['Cough state']) 	
         plt.plot(yy, alpha=0.5, color='green') 
         plt.show()
     return peaklist
@@ -196,39 +196,16 @@ def motionrange(df):
 
 def sleep_detection(df):
     instHr = df["InstantHr"]
-    avgHr = df["AvgHr"]             # unused but might be
-                                    # used if the "if" is
-                                    # changed
-    (n,_) = df.shape 
+    avgHr = df["AvgHr"]
+    (n,m) = df.shape 
     asleep_list = []
-    period = 3000                   #One minute
-    if(n > period):
-        std_dev_list = []
-        threshold = 65
-        for i in range(period):
-            std_dev_list.append(45.0)
-            asleep_list.append(0)
-        for i in range(period,n):
-            std_dev_list.append(np.std(df["InstantHr"][i-period+1:i+1]))
-            if(std_dev_list[i] < threshold):
-                # && instHr[i]<avgHr[i]
-                # potentially add this in 
-                asleep_list.append(1)
-            else:
-                asleep_list.append(0)  
-        std_mean = np.mean(std_dev_list[period:])
-        for i in range(period):
-            std_dev_list[i] = std_mean
-        # left in for working out a better threshold
-        # value for if someone is sleeping or not
-        #print("np.mean(std_dev_list[period:] = ", np.mean(std_dev_list[period:]))
-        #print("np.std(std_dev_list) = ", np.std(std_dev_list))
-        #print("min(std_dev_list) = ", min(std_dev_list))
-        #print("max(std_dev_list) = ", max(std_dev_list))
-    else:
-        asleep_list = [0]*n
+    period = 100
+    threshold = 0
+    for i in range(period):
+        asleep_list[i] = 0
+    for i in range(period,n):
+        asleep_list[i] = numpy.std(df["InstantHr"][i-period+1:i+1])
     return pd.Series(asleep_list)
-
 
 pathtrain = "./traindata/"
 all_filestrain = glob.glob(os.path.join(pathtrain, "*.txt")) #make list of paths
@@ -242,8 +219,7 @@ dftest = pd.DataFrame()
 initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                         "ls":3.0, "ir":4.0, "ik":5.0,\
                         "sa":6.0}
-names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
-
+names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People']
 
 for file in all_filestrain:
     # Getting the file name without extension
@@ -263,17 +239,13 @@ for file in all_filestrain:
         ds=difference(dftmp)
 
         #peak detection using moving avg
-        motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
+        motionth = 0.5 #threshold for identifying motion, difference in number of peaks
         motionlist = motiondetect(ds, motionth)
         motionseries = pd.Series(motionlist)
         dftmp['Motion'] = motionseries.values
         #motionrangelist=motionrange(dftmp)
         start=0
         end=100
-
-        #see if sleeping
-        sleep_series = sleep_detection(dftmp)
-        dftmp['Sleeping'] = sleep_series.values
 
         # Make a temporary .txt file in csv form so we can
         # look at columns
@@ -324,12 +296,7 @@ for file in all_filestest:
         #motionrangelist=motionrange(dftmp)
         start=0
         end=100
-
-        #see if sleeping
-        sleep_series = sleep_detection(dftmp)
-        dftmp['Sleeping'] = sleep_series.values
-
-
+        
         # Make a temporary .txt file in csv form so we can
         # look at columns
         dftmp.to_csv('tmp.txt', index=False, header=False)
