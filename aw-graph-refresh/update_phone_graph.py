@@ -6,8 +6,8 @@
 # be shown on the phone app.
 
 import updown
-#import datacombine
-import DO_NOT_USE_datacombine_aw_changed
+import datacombine_sc
+#import DO_NOT_USE_datacombine_aw_changed
 import loadtest
 import time
 
@@ -19,7 +19,7 @@ if __name__ == '__main__':
             t0 = time.time()
             print("\nThe file has changed so running datacombine\n")
             # if so convert to the right form
-            DO_NOT_USE_datacombine_aw_changed.main('./server_local_test_data/', False)
+            datacombine_sc.main('update_phone_graph')
             print("\ndata combined/converted\n")
             # run the model on it to get the results
             loadtest.main()
