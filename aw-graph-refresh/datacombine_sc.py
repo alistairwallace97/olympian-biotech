@@ -349,7 +349,9 @@ for file in all_filestest:
 dftest=standardization(dftest, Mean, Std)
 dftest.to_csv('combineddata_test.txt', index=False, header=False)
 
-# Delete temporary .txt file for reseting the person number
-#os.remove("tmp.txt")
+# Delete temporary .txt files to avoid clutter
+os.remove("tmp.txt")
+os.remove("difference.txt")
+os.remove("tmpdata.txt")
 
 print("done")
