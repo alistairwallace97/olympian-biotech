@@ -203,7 +203,8 @@ def sleep_detection(df):
             std_dev_list.append(np.std(df["InstantHr"][i-period+1:i+1]))
             if(std_dev_list[i] < threshold):
                 # && df["InstantHr"][i]<df["AvgHr"][i]
-                # potentially add this in 
+                # potentially add this in as if you are 
+                # sleeping you Hr should also be pretty low
                 asleep_list.append(1)
             else:
                 asleep_list.append(0)  
