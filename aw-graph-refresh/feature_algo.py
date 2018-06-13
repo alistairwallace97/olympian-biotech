@@ -19,6 +19,8 @@ import pickle
 from sklearn.externals import joblib
 from sklearn.model_selection import cross_validate
 
+seq_len = 100
+
 def csvtodf(c):
     dfr = pd.read_csv(c, header=None, names=names)
 
@@ -198,10 +200,10 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     crossingGx = peakdetection(df, 7, 1) 
     crossingGy = peakdetection(df, 8, 1) 
     crossingGz = peakdetection(df, 9, 1) 
-    for i in range (0,len(df),100):
+    for i in range (0,len(df),seq_len):
         peaklistAcc=[]
         th1 = i
-        th2=i+100
+        th2=i+seq_len
 
         peaklistAcc.append([peakcount(peakAx,th1,th2),peakcount(crossingAx,th1,th2)])
         peaklistAcc.append([peakcount(peakAy,th1,th2),peakcount(crossingAy,th1,th2)])
@@ -214,15 +216,15 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     motion = motioncorrection(motion)
     for i in range(0,len(df)):
         for j in range(0,len(motion)):
-            if i >=motion[j][0] and i<motion[j][0]+100:
+            if i >=motion[j][0] and i<motion[j][0]+seq_len:
                 motionlist.append(motion[j][1])
     motionlist.extend((0,0))
     return motionlist
 
-def dataconverion(df):    #convert into 100 in one row
+def dataconverion(df):    #convert into seq_len in one row
     for c in df.columns:    
         start=0
-        end=100
+        end=seq_len
         finish=0
         templist=[]
         listoflist=[]
@@ -230,25 +232,25 @@ def dataconverion(df):    #convert into 100 in one row
             if i>=start and i<end:
                 templist.append(df[c][i])
             if i==end-1:
-                start=start+100
+                start=start+seq_len
                 listoflist.append(templist)
                 #print(len(templist))
                 templist=[]
-            if i==round((len(df)/100-1))*100:
-                end=start+len(df)%100-1
+            if i==round((len(df)/seq_len-1))*seq_len:
+                end=start+len(df)%seq_len-1
                 #print(end)
                 finish=1
             elif finish==0:
-                end=start+100
+                end=start+seq_len
         if c=='Cough state':
             outputlisttemp=listoflist
         np.savetxt(c+".csv", listoflist, delimiter=",", fmt='%s')
     outputlist=[]
     for i in range(0,len(outputlisttemp)):
         outputbool=0
-        const=100
+        const=seq_len
         if i==len(outputlisttemp)-1:
-            const=len(outputlisttemp[len(outputlisttemp)-1])%100
+            const=len(outputlisttemp[len(outputlisttemp)-1])%seq_len
         for j in range(0,const):
             if outputlisttemp[i][j]==1:
                 outputbool=1
@@ -256,12 +258,12 @@ def dataconverion(df):    #convert into 100 in one row
     #print(outputlist)
     np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
 
-def split100(peaklist):
+def split(peaklist):
     #print(peaklist)
     templist=[]
     for i in range (0,len(peaklist)):
-        start=peaklist[i]//100*100
-        end=start+100
+        start=peaklist[i]//seq_len*seq_len
+        end=start+seq_len
         templist.append([start,end])
 
     templist=sorted(templist)
@@ -388,7 +390,6 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
     with open(resultname, "a") as f:
         f.write(result)
 
-#for i in range(0,100):
 # define column names
 
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
@@ -396,7 +397,7 @@ df=csvtodf('combineddata_train.txt')
 ds=difference(df)
 #peak detection using moving avg
 #motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
-#motionlist = motiondetect(ds, motionth) #list of list, [start,end] of 100 data range
+#motionlist = motiondetect(ds, motionth) #list of list, [start,end] of seq_len data range
 #motionseries = pd.Series(motionlist)
 #df['Motion'] = motionseries.values
 
@@ -422,7 +423,7 @@ indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values#putting into dataframe
 
 peaklist=indexlist
-templist=split100(peaklist)
+templist=split(peaklist)
 
 X_train=featureextraction(df,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_train=createoutputlist(df,templist)
@@ -438,11 +439,11 @@ indexlisttemp=indexlist
 indexlist=pd.Series(indexlist)
 df_test['Index'] = indexlist.values#putthing into dataframe
 
-fulllist=split100(indexlisttemp)
+fulllist=split(indexlisttemp)
 y_testfull=createoutputlist(df_test,fulllist)
 
 peaklist=indexlist
-templist=split100(peaklist)#list of list, range of start and end of region of interest
+templist=split(peaklist)#list of list, range of start and end of region of interest
 X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_test=createoutputlist(df_test,templist)
 #pulling out index and saving it for later reference
@@ -464,15 +465,13 @@ classifier.fit(X_train, y_train)
 ypred=classifier.predict(X_test)
 
 ypredfull=[]
-for i in range (0,len(df_test),100):
+for i in range (0,len(df_test),seq_len):
     if (X_testtemp.loc[X_testtemp.Index == i]).empty:
         ypredfull.append(0)
     else:
         ypredindex= (X_testtemp.loc[X_testtemp.Index == i].index[0])
         ypredfull.append(ypred[ypredindex])
-    
-#print(list(range(0,len(df_test),100)))
-#print(y_testtemp)
+
 
 cv_results = cross_validate(classifier, X_train, y_train, return_train_score=False, scoring = ('accuracy'))
 print(cv_results)
@@ -501,7 +500,7 @@ print("Coughs correctly identified:  %.6f" % coughaccuracy)
 print("Full: ")
 print("y_test: ",  *y_testfull)
 print("y_pred: ",  *ypredfull)
-print("Index: ", *list(range(0,len(df_test),100)))
+print("Index: ", *list(range(0,len(df_test),seq_len)))
 roiaccuracy=accuracy(y_testfull, ypredfull)
 sum=0
 correct=0
@@ -532,7 +531,7 @@ graphinputlisttmp=[]
 for i in range (0,len(df_test)):
     graphinputlisttmp.append(df_test['EMG1'][i])
     graphinputlisttmp.append(df_test['Cough state'][i])
-    graphinputlisttmp.append(ypredfull[i//100])
+    graphinputlisttmp.append(ypredfull[i//seq_len])
     graphinputlist.append(graphinputlisttmp)
 #print(graphinputlist)
 #export result
