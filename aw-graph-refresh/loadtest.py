@@ -467,7 +467,6 @@ def main():
     print("Number of coughs in test data: ",testcoughcount)
 
     predcoughcount=0
-    conseccount=0
     for i in range (0,len(ypred)):
         if ypred[i]==1:
             predcoughcount+=1
@@ -546,7 +545,7 @@ def main():
         open("./server_local_graph/graph_test.txt", "w").close()
 
         f= open("./server_local_graph/graph_test.txt", "a")
-        f.write("n"+str(predcoughcount)+"\n")
+        f.write("n"+str(predcoughcount)+","+0+"\n")
 
         for i in range (0,len(df_test)):
             graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//(seq_len)])+","+str(df_test['Motion'][i])+","+"0"+"\n"
