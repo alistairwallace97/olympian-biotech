@@ -225,7 +225,7 @@ def main(mode):
     initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                             "ls":3.0, "ir":4.0, "ik":5.0,\
                             "sa":6.0, "te":7.0}
-    names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+    names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People']
     Mean=[]
     Std=[]
 
@@ -259,8 +259,8 @@ def main(mode):
                 end=100
 
                 #see if sleeping
-                sleep_series = sleep_detection(dftmp)
-                dftmp['Sleeping'] = sleep_series.values
+                #sleep_series = sleep_detection(dftmp)
+                #dftmp['Sleeping'] = sleep_series.values
 
                 # Make a temporary .txt file in csv form so we can
                 # look at columns
@@ -319,8 +319,8 @@ def main(mode):
                 end=100
 
                 #see if sleeping
-                sleep_series = sleep_detection(dftmp)
-                dftmp['Sleeping'] = sleep_series.values
+                #sleep_series = sleep_detection(dftmp)
+                #dftmp['Sleeping'] = sleep_series.values
 
 
                 # Make a temporary .txt file in csv form so we can
@@ -356,6 +356,9 @@ def main(mode):
             dftest.to_csv('./server_local_graph/graph_algo_in.txt', index=False, header=False)
         else:
             dftest.to_csv('combineddata_test.txt', index=False, header=False)
+
+    dfHr = dftest.iloc[:,[11,12]]
+    dfHr.to_csv('Hr.txt', index=False, header=False)
 
     # Delete temporary .txt files to avoid clutter
     os.remove("tmp.txt")

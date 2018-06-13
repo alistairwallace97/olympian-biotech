@@ -391,7 +391,7 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
 #for i in range(0,100):
 # define column names
 
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']
+names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
 df=csvtodf('combineddata_train.txt')
 ds=difference(df)
 #peak detection using moving avg
