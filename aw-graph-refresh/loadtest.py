@@ -532,7 +532,7 @@ def main():
         open("./server_local_graph/graph.txt", "w").close()
 
         f= open("./server_local_graph/graph.txt", "a")
-        f.write(str(predcoughcount)+","+str(avg)+"\n")
+        f.write("n"+str(predcoughcount)+","+str(avg)+"\n")
         for i in range (0,len(df_test)):
             graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+","+str(df_test['Sleeping'][i])+"\n"
             f.write(graphinput)
@@ -543,7 +543,7 @@ def main():
         open("./server_local_graph/graph.txt", "w").close()
 
         f= open("./server_local_graph/graph.txt", "a")
-        f.write(str(predcoughcount)+","+"\n")
+        f.write("n"+str(predcoughcount)+","+"\n")
         for i in range (0,len(df_test)):
             graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+"\n"
             f.write(graphinput)
