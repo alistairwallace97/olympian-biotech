@@ -417,6 +417,8 @@ def main():
     indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
     df_test['Index'] = indexlist.values#putthing into dataframe
+    listofzeros = [0] * len(df_test)
+    df_test['EMG1']=listofzeros
 
     peaklist=indexlist
     peaklist=list(set(peaklist)) #region of interest, points of high differentials
@@ -477,6 +479,8 @@ def main():
     #Hr
     df_Hr=df_Hr.dropna(how='any') 
     df_Hr = lowpassfilter(df_Hr)
+    df_Hr['Index'] = indexlist.values#putthing into dataframe
+    listofzeros = [0] * len(df_Hr)
     ds=difference(df_Hr)
 
     #sensor index: 1:EMG1, 2:EMG2, 3:Vibration1, 4:Vibration2, 5:Ax, 6:Ay, 7:Az, 8:Gx, 9:Gy, 10:Gz , 11:Hr1, 12:Hr2, 13:Temperature
@@ -538,7 +542,7 @@ def main():
         f.write("n"+str(predcoughcount)+"\n")
 
         for i in range (0,len(df_test)):
-            graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//(seq_len)])+","+str(df_test['Motion'][i])+"\n"
+            graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//(seq_len)])+","+str(df_test['Motion'][i])+","+"0"+"\n"
             f.write(graphinput)
         f.close()
 
