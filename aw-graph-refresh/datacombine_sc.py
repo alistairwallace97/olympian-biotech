@@ -357,8 +357,8 @@ def main(mode):
         else:
             dftest.to_csv('combineddata_test.txt', index=False, header=False)
 
-    dfHr = dftest.iloc[:,[11,12]]
-    dfHr.to_csv('Hr.txt', index=False, header=False)
+        dfHr = dftest.iloc[:,5:13]
+        dfHr.to_csv('Hr.txt', index=False, header=False)
 
     # Delete temporary .txt files to avoid clutter
     os.remove("tmp.txt")

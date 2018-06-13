@@ -7,9 +7,9 @@
 
 import updown
 import datacombine_sc
-#import DO_NOT_USE_datacombine_aw_changed
 import loadtest
 import time
+import append_graphs as ag
 
 
 if __name__ == '__main__':
@@ -24,9 +24,15 @@ if __name__ == '__main__':
             # run the model on it to get the results
             loadtest.main()
             print("\nmodel run\n")
+            # pull all graph results from dropbox
+            updown.main('graph/all_graphs', './server_local_graph/local_all_graphs', 'pull')
+            #append to previous graphs
+            ag.append()
             # push the new results to the dropbox to be 
             # displayed on the phone
-            updown.main('graph_test', './server_local_graph', "push")
+            updown.main('graph', './server_local_graph', "push")
+            # push new all graphs file to db
+            updown.main('graph/all_graphs', './server_local_graph/local_all_graphs', 'push')
             print("\nnew graph files uploaded\n")  
             t1 = time.time()
             print("Total time: {}".format(t1-t0))     

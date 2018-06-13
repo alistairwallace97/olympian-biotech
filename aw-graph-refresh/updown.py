@@ -75,6 +75,7 @@ def main(folder, rootdir, push_pull):
     for dn, dirs, files in os.walk(rootdir):
         subfolder = dn[len(rootdir):].strip(os.path.sep)
         listing = list_folder(dbx, folder, subfolder)
+        synced = False
 
         # First do all the files.
         for name in files:
@@ -122,7 +123,8 @@ def main(folder, rootdir, push_pull):
                 return_val = True
             elif not yesno('Confirm Upload %s' % name, True, args):
                 return_val = False
-            return return_val
+            synced = synced or return_val
+        return synced
 
         # Then choose which subdirectories to traverse.
         keep = []

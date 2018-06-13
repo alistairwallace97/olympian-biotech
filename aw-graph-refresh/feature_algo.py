@@ -280,7 +280,7 @@ def featureextraction(df,templist):
         moving=0
         indexbool=0
         for c in df.columns:
-            if c!='Cough state' and c!='Hr' and c!='Instant Hr' and c!= 'Avg Hr' and c!= 'People' and c!='Motion' and c!='Index':
+            if c!='Cough state' and c!='Hr1' and c!='Hr2' and c!= 'Temperature' and c!= 'People' and c!='Motion' and c!='Index':
                 data=df[c][templist[i][0]:templist[i][1]]
                 #diff=ds[c][templist[i][0]:templist[i][1]]
                 datamax=data.max()
