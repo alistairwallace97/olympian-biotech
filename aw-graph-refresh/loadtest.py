@@ -412,8 +412,8 @@ def sleep_detection(df):
         asleep_list = [0]*n
     return pd.Series(asleep_list)
 def main():
-    #df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
-    df_test=csvtodf('combineddata_test.txt')
+    df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    #df_test=csvtodf('combineddata_test.txt')
     ds=difference(df_test)
 
 
