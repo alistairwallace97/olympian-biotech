@@ -407,6 +407,8 @@ def sleep_detection(df):
     return pd.Series(asleep_list)
 def main():
     df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    #df_test=csvtodf('combineddata_test.txt')
+
     df_Hr=df_test
     #df_Hr=csvtodf('combineddata_test.txt')
 
@@ -470,9 +472,9 @@ def main():
     for i in range (0,len(ypred)):
         if ypred[i]==1:
             predcoughcount+=1
-    for i in range (0,len(testconsecutiveindex)):
-        if ypred[testconsecutiveindex[i]]==1 and ypred[testconsecutiveindex[i]-1]==1:
-            predcoughcount-=1
+    #for i in range (0,len(testconsecutiveindex)):
+    #    if ypred[testconsecutiveindex[i]]==1 and ypred[testconsecutiveindex[i]-1]==1:
+    #        predcoughcount-=1
     i=1
     while i<len(ypred):
         if ypred[i]==1 and  ypred[i-1]==1:
