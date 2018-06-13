@@ -183,7 +183,7 @@ def motioncorrection(list):#correct misclassified motion
 
 def motiondetect(df,motionth):#compare the number of peaks of two moving averages to detect motion
     motionlist = []#list of motions for all df elements
-    motion = []#list of pairs of motion and element for every 100 elements
+    motion = []#list of pairs of motion and element
     #number of intersection with MA (a=0.01, b=1.05) used for identifying motion
     peakAx = peakdetection(df, 4, 0) 
     peakAy = peakdetection(df, 5, 0) 
