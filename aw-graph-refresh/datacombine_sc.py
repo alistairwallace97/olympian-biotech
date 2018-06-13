@@ -19,6 +19,8 @@ from sklearn.tree import DecisionTreeClassifier
 import pickle
 from sklearn.externals import joblib
 
+seq_len = 20
+
 def standardization(X_train, Mean, Std):
     for i in range(1, 11):
         X_train.iloc[:, i]=(X_train.iloc[:, i] -Mean[i-1] )/ (Std[i-1])
@@ -143,7 +145,7 @@ def motioncorrection(list):#correct misclassified motion
     return list
 def motiondetect(df,motionth):#compare the number of peaks of two moving averages to detect motion
     motionlist = []#list of motions for all df elements
-    motion = []#list of pairs of motion and element for every 100 elements
+    motion = []#list of pairs of motion and element for every seq_len elements
     #number of intersection with MA (a=0.01, b=1.05) used for identifying motion
     peakAx = peakdetection(df, 4, 0) 
     peakAy = peakdetection(df, 5, 0) 
@@ -158,10 +160,10 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     crossingGx = peakdetection(df, 7, 1) 
     crossingGy = peakdetection(df, 8, 1) 
     crossingGz = peakdetection(df, 9, 1) 
-    for i in range (0,len(df),100):
+    for i in range (0,len(df),seq_len):
         peaklistAcc=[]
         th1 = i
-        th2=i+100
+        th2=i+seq_len
 
         peaklistAcc.append([peakcount(peakAx,th1,th2),peakcount(crossingAx,th1,th2)])
         peaklistAcc.append([peakcount(peakAy,th1,th2),peakcount(crossingAy,th1,th2)])
@@ -174,7 +176,7 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     motion = motioncorrection(motion)
     for i in range(0,len(df)):
         for j in range(0,len(motion)):
-            if i >=motion[j][0] and i<motion[j][0]+100:
+            if i >=motion[j][0] and i<motion[j][0]+seq_len:
                 motionlist.append(motion[j][1])
     motionlist.append((0))
     return motionlist
@@ -256,7 +258,7 @@ def main(mode):
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
                 start=0
-                end=100
+                end=seq_len
 
                 #see if sleeping
                 #sleep_series = sleep_detection(dftmp)
@@ -266,7 +268,7 @@ def main(mode):
                 # look at columns
                 dftmp.to_csv('tmp.txt', index=False, header=False)
                 dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-                dftmp=dftmp[:len(dftmp)//100*100]
+                dftmp=dftmp[:len(dftmp)//seq_len*seq_len]
                 # If the person forgot to set the number, then 
                 # reset the number for them automatically.
                 if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
@@ -316,7 +318,7 @@ def main(mode):
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
                 start=0
-                end=100
+                end=seq_len
 
                 #see if sleeping
                 #sleep_series = sleep_detection(dftmp)
@@ -327,7 +329,7 @@ def main(mode):
                 # look at columns
                 dftmp.to_csv('tmp.txt', index=False, header=False)
                 dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-                dftmp=dftmp[:len(dftmp)//100*100]
+                dftmp=dftmp[:len(dftmp)//seq_len*seq_len]
                 # If the person forgot to set the number, then 
                 # reset the number for them automatically.
                 if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
