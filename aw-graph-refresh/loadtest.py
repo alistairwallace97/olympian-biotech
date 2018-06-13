@@ -18,6 +18,7 @@ from sklearn.externals import joblib
 import csv
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']  
 
+seq_len = 20
 
 def csvtodf(c):
     dfr = pd.read_csv(c, header=None, names=names)
@@ -69,6 +70,9 @@ def peakdetection(dataset, sensor, mode):
         b=1.04
     if (sensor == 4) or (sensor == 5) or (sensor == 6) or (sensor == 7) or (sensor == 8) or (sensor == 9):
         a=0.05
+        b=1.01
+    if (sensor == 11) or (sensor == 12):
+        a=0.01
         b=1.01
     if (mode == 1):
         a=0
@@ -163,7 +167,7 @@ def motioncorrection(list):#correct misclassified motion
 
 def motiondetect(df,motionth):#compare the number of peaks of two moving averages to detect motion
     motionlist = []#list of motions for all df elements
-    motion = []#list of pairs of motion and element for every 100 elements
+    motion = []#list of pairs of motion and element for every seq_len elements
     #number of intersection with MA (a=0.01, b=1.05) used for identifying motion
     peakAx = peakdetection(df, 4, 0) 
     peakAy = peakdetection(df, 5, 0) 
@@ -178,10 +182,10 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     crossingGx = peakdetection(df, 7, 1) 
     crossingGy = peakdetection(df, 8, 1) 
     crossingGz = peakdetection(df, 9, 1) 
-    for i in range (0,len(df),100):
+    for i in range (0,len(df),seq_len):
         peaklistAcc=[]
         th1 = i
-        th2=i+100
+        th2=i+seq_len
 
         peaklistAcc.append([peakcount(peakAx,th1,th2),peakcount(crossingAx,th1,th2)])
         peaklistAcc.append([peakcount(peakAy,th1,th2),peakcount(crossingAy,th1,th2)])
@@ -194,15 +198,15 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     motion = motioncorrection(motion)
     for i in range(0,len(df)):
         for j in range(0,len(motion)):
-            if i >=motion[j][0] and i<motion[j][0]+100:
+            if i >=motion[j][0] and i<motion[j][0]+seq_len:
                 motionlist.append(motion[j][1])
     motionlist.extend((0,0))
     return motionlist
 
-def dataconverion(df):    #convert into 100 in one row
+def dataconverion(df):    #convert into seq_len in one row
     for c in df.columns:    
         start=0
-        end=100
+        end=seq_len
         finish=0
         templist=[]
         listoflist=[]
@@ -210,34 +214,34 @@ def dataconverion(df):    #convert into 100 in one row
             if i>=start and i<end:
                 templist.append(df[c][i])
             if i==end-1:
-                start=start+100
+                start=start+seq_len
                 listoflist.append(templist)
                 templist=[]
-            if i==round((len(df)/100-1))*100:
-                end=start+len(df)%100-1
+            if i==round((len(df)/seq_len-1))*seq_len:
+                end=start+len(df)%seq_len-1
                 finish=1
             elif finish==0:
-                end=start+100
+                end=start+seq_len
         if c=='Cough state':
             outputlisttemp=listoflist
         np.savetxt(c+".csv", listoflist, delimiter=",", fmt='%s')
     outputlist=[]
     for i in range(0,len(outputlisttemp)):
         outputbool=0
-        const=100
+        const=seq_len
         if i==len(outputlisttemp)-1:
-            const=len(outputlisttemp[len(outputlisttemp)-1])%100
+            const=len(outputlisttemp[len(outputlisttemp)-1])%seq_len
         for j in range(0,const):
             if outputlisttemp[i][j]==1:
                 outputbool=1
         outputlist.append(outputbool)
     np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
 
-def split100(peaklist):
+def splitseq_len(peaklist):
     templist=[]
     for i in range (0,len(peaklist)):
-        start=peaklist[i]//100*100
-        end=start+100
+        start=peaklist[i]//seq_len*seq_len
+        end=start+seq_len
         templist.append([start,end])
 
     templist=sorted(templist)
@@ -350,9 +354,66 @@ def exportresult(roiaccuracy, coughaccuracy, ypred, y_test, model, knn_n):
     with open(resultname, "a") as f:
         f.write(result)
 
+def hrcorrection(peaklist):
+    notpeak=[]
+    for i in range (1,len(peaklist)):
+        if peaklist[i]-peaklist[i-1]<10:
+            notpeak.append(peaklist[i])
+    print(len(peaklist))
+    print(notpeak)
+
+    for i in range (0,len(notpeak)):
+        peaklist.remove(notpeak[i])
+
+    return peaklist
+
+def diffHr(peaklist):
+    diffpeak=[]
+    for i in range (1,len(peaklist)):
+        diffpeak.append(peaklist[i]-peaklist[i-1])
+    return diffpeak
+
+def calcHr(diffpeak):
+    sum=0
+    count=0
+    Hr=[]
+    for i in range (0,len(diffpeak)):
+        Hr.append(60/(diffpeak[i]*0.032)) #fs=50Hz
+    return Hr
+def sleep_detection(df):
+    (n,_) = df.shape 
+    asleep_list = []
+    period = 3000                   #One minute
+    if(n > period):
+        std_dev_list = []
+        threshold = 65
+        for i in range(period):
+            std_dev_list.append(45.0)
+            asleep_list.append(0)
+        for i in range(period,n):
+            std_dev_list.append(np.std(df["Hr"][i-period+1:i+1]))
+            if(std_dev_list[i] < threshold):
+                # && df["InstantHr"][i]<df["AvgHr"][i]
+                # potentially add this in as if you are 
+                # sleeping you Hr should also be pretty low
+                asleep_list.append(1)
+            else:
+                asleep_list.append(0)  
+        std_mean = np.mean(std_dev_list[period:])
+        for i in range(period):
+            std_dev_list[i] = std_mean
+        # left in for working out a better threshold
+        # value for if someone is sleeping or not
+        #print("np.mean(std_dev_list[period:] = ", np.mean(std_dev_list[period:]))
+        #print("np.std(std_dev_list) = ", np.std(std_dev_list))
+        #print("min(std_dev_list) = ", min(std_dev_list))
+        #print("max(std_dev_list) = ", max(std_dev_list))
+    else:
+        asleep_list = [0]*n
+    return pd.Series(asleep_list)
 def main():
-    df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
-    #df_test=csvtodf('combineddata_test.txt')
+    #df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
+    df_test=csvtodf('combineddata_test.txt')
     ds=difference(df_test)
 
 
@@ -367,8 +428,8 @@ def main():
     indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
     df_test['Index'] = indexlist.values#putthing into dataframe
-    fulllist=split100(indexlisttemp)
-    templist=split100(peaklist)#list of list, range of start and end of region of interest
+    fulllist=splitseq_len(indexlisttemp)
+    templist=splitseq_len(peaklist)#list of list, range of start and end of region of interest
     X_test=featureextraction(df_test,templist)#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
     y_test=createoutputlist(df_test,templist)
 
@@ -402,7 +463,7 @@ def main():
         if y_test[i]==1:
             testcoughcount+=1
         if i>0 and y_test[i]==1 and y_test[i-1] == y_test[i]:
-            if df_test['Cough state'][i*100]==1 and df_test['Cough state'][i*100-1]==1:
+            if df_test['Cough state'][i*seq_len]==1 and df_test['Cough state'][i*seq_len-1]==1:
                 testconsecutiveindex.append(i)
     testcoughcount=testcoughcount-len(testconsecutiveindex)
     print("Number of coughs in test data: ",testcoughcount)
@@ -416,16 +477,77 @@ def main():
             predcoughcount-=1
     print("Number of coughs identified: ",predcoughcount)
 
-    #producing three columns for generating graph
-    open("./server_local_graph/graph_test.txt", "w").close()
 
-    f= open("./server_local_graph/graph_test.txt", "a")
-    f.write(str(predcoughcount)+"\n")
-    for i in range (0,len(df_test)):
-        graphinput=str(df_test['EMG1'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//100])+","+str(df_test['Motion'][i])+"\n"
-        f.write(graphinput)
-    f.close()
+    #Hr
+    df_test=csvtodf('combineddata_test.txt')
+    df_test=df_test.dropna(how='any') 
+    df_test = lowpassfilter(df_test)
+    ds=difference(df_test)
 
+    #sensor index: 1:EMG1, 2:EMG2, 3:Vibration1, 4:Vibration2, 5:Ax, 6:Ay, 7:Az, 8:Gx, 9:Gy, 10:Gz , 11:Hr1, 12:Hr2, 13:Temperature
+    #peaklist1 = peakdetection(df_test, 11, 0)
+    peaklist2 = peakdetection(df_test, 12, 0)
+    if len(peaklist2)!=0:
+        #print(peaklist1)
+        print(peaklist2)
+        #peaklist1=hrcorrection(peaklist1)
+        peaklist2=hrcorrection(peaklist2)
+        #print(peaklist1)
+        print(peaklist2)
+        
+        #differenceHr1=diffHr(peaklist1)
+        differenceHr2=diffHr(peaklist2)
+        #differenceHr=[]
+        #for i in range(0,len(differenceHr1)):
+        #    differenceHr.append((differenceHr1[i]+differenceHr2[i])/2)
+
+        Hr = calcHr(differenceHr2)
+
+        sum=0
+        count=0
+        for i in range (0,len(Hr)):
+            sum=sum+Hr[i]
+            count+=1
+        if count == 0:
+            avg=1
+        else:
+            avg=sum/count
+
+        Hrlist=[]
+        for i in range(0,len(differenceHr2)):
+            for j in range(0,round(differenceHr2[i])):
+                Hrlist.append(Hr[i])
+
+        df_test=df_test.iloc[0:len(Hrlist), :]
+        df_test['Hr']=Hrlist
+
+        #see if sleeping
+        sleep_series = sleep_detection(df_test)
+        df_test['Sleeping'] = sleep_series.values
+        pd.set_option('display.max_rows', 2000)
+
+
+
+        #producing three columns for generating graph
+        open("./server_local_graph/graph.txt", "w").close()
+
+        f= open("./server_local_graph/graph.txt", "a")
+        f.write(str(predcoughcount)+","+str(avg)+"\n")
+        for i in range (0,len(df_test)):
+            graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+","+str(df_test['Sleeping'][i])+"\n"
+            f.write(graphinput)
+        f.close()
+    
+    else:
+                #producing three columns for generating graph
+        open("./server_local_graph/graph.txt", "w").close()
+
+        f= open("./server_local_graph/graph.txt", "a")
+        f.write(str(predcoughcount)+","+"\n")
+        for i in range (0,len(df_test)):
+            graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+"\n"
+            f.write(graphinput)
+        f.close()
 
 if __name__ == '__main__':
     main()
