@@ -467,12 +467,19 @@ def main():
     print("Number of coughs in test data: ",testcoughcount)
 
     predcoughcount=0
+    conseccount=0
     for i in range (0,len(ypred)):
         if ypred[i]==1:
             predcoughcount+=1
     for i in range (0,len(testconsecutiveindex)):
         if ypred[testconsecutiveindex[i]]==1 and ypred[testconsecutiveindex[i]-1]==1:
             predcoughcount-=1
+    i=1
+    while i<len(ypred):
+        if ypred[i]==1 and  ypred[i-1]==1:
+            predcoughcount-=1
+            i+=1
+        i+=1
     print("Number of coughs identified: ",predcoughcount)
 
 
