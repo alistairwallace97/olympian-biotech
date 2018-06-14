@@ -44,9 +44,12 @@ def peakdetection(dataset, sensor, mode):
     if (sensor == 0) or (sensor == 1):
         a=0.03
         b=1.03
-    if (sensor == 4) or (sensor == 5) or (sensor == 6) or (sensor == 7) or (sensor == 8) or (sensor == 9):
-        a=0.05
-        b=1.01
+    if (sensor == 4) or (sensor == 5) or (sensor == 6):
+        a=0.025
+        b=1.025
+    if (sensor == 7) or (sensor == 8) or (sensor == 9):
+        a=0.045
+        b=1.045    
     if (mode == 1):
         a=0
         b=1
@@ -69,15 +72,13 @@ def peakdetection(dataset, sensor, mode):
                 peaklist.append(beatposition) #Add detected peak to list
                 window = [] #Clear marked ROI
         listpos += 1  
-    if sensor == 2 or sensor == 3:
+    if sensor == 17 or sensor == 18:
         y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
         plt.title("Detected peaks in signal")
         plt.xlim(0,len(dataset))
         plt.plot(dataset[dataset.columns[sensor]], alpha=0.5, color='blue') #Plot semi-transparent HR
         plt.plot(MA, color ='green') #Plot moving average
         plt.scatter(peaklist, y, color='red') #Plot detected peaks
-        yy = np.array(df['CoughState']) 	
-        plt.plot(yy, alpha=0.5, color='green') 
         plt.show()
     return peaklist
 
