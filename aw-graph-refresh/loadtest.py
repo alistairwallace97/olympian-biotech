@@ -408,7 +408,6 @@ def sleep_detection(df):
 def main():
     df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
     #df_test=csvtodf('combineddata_test.txt')
-
     df_Hr=df_test
     #df_Hr=csvtodf('combineddata_test.txt')
 
@@ -490,14 +489,12 @@ def main():
     df_Hr['Index'] = indexlist.values#putthing into dataframe
     listofzeros = [0] * len(df_Hr)
     ds=difference(df_Hr)
-
     #sensor index: 1:EMG1, 2:EMG2, 3:Vibration1, 4:Vibration2, 5:Ax, 6:Ay, 7:Az, 8:Gx, 9:Gy, 10:Gz , 11:Hr1, 12:Hr2, 13:Temperature
     #peaklist1 = peakdetection(df_test, 11, 0)
     peaklist2 = peakdetection(df_test, 12, 0)
     if len(peaklist2)!=0:
-
+        
         peaklist2=hrcorrection(peaklist2)
-
         
         #differenceHr1=diffHr(peaklist1)
         differenceHr2=diffHr(peaklist2)
@@ -505,8 +502,7 @@ def main():
         #for i in range(0,len(differenceHr1)):
         #    differenceHr.append((differenceHr1[i]+differenceHr2[i])/2)
 
-        Hr = calcHr(differenceHr2)
-
+        Hr = calcHr(differenceHr2)#value
         sum=0
         count=0
         for i in range (0,len(Hr)):
@@ -517,18 +513,27 @@ def main():
         else:
             avg=sum/count
 
-        Hrlist=[]
-        for i in range(0,len(differenceHr2)):
-            for j in range(0,round(differenceHr2[i])):
-                Hrlist.append(Hr[i])
 
-        df_test=df_test.iloc[0:len(Hrlist), :]
+        Hrlist=[]
+        for i in range (0,peaklist2[0]):
+            Hrlist.append(Hr[0])
+
+        start=peaklist2[0]
+        for i in range(0,len(Hr)):
+            end=peaklist2[i+1]
+            for j in range(start,end):
+                Hrlist.append(Hr[i])
+            start=end
+
+        for i in range (peaklist2[-1],len(df_test)):
+            Hrlist.append(Hr[-1])
+
+        #df_test=df_test.iloc[0:len(Hrlist), :]
         df_test['Hr']=Hrlist
 
         #see if sleeping
         sleep_series = sleep_detection(df_test)
         df_test['Sleeping'] = sleep_series.values
-        pd.set_option('display.max_rows', 2000)
 
 
 
