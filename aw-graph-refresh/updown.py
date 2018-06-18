@@ -262,4 +262,6 @@ def stopwatch(message):
         t1 = time.time()
 
 if __name__ == '__main__':
+    #bool_var = main('graph/all_graphs', './server_local_graph/local_all_graphs', 'push')
     bool_var = main('test_data', './tmp', 'push')
+
