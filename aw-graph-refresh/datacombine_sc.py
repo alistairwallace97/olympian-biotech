@@ -19,32 +19,41 @@ from sklearn.tree import DecisionTreeClassifier
 import pickle
 from sklearn.externals import joblib
 
+seq_len = 20
+
 def standardization(X_train, Mean, Std):
     for i in range(1, 11):
         X_train.iloc[:, i]=(X_train.iloc[:, i] -Mean[i-1] )/ (Std[i-1])
     return X_train
 
 def peakdetection(dataset, sensor, mode):
+    #detects peaks and return a list of x values of all detected peaks
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
     sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
-    for datapoint in range(0,len(MA)):   #eliminating NaN if NaN, rollingmean=original data value
-        rollingmean = MA[listpos] #Get local mean
+    for datapoint in range(0,len(MA)):   
+        #eliminating NaN if NaN, rollingmean=original data value
+        rollingmean = MA[listpos] 
+        #Get local mean
         if math.isnan(rollingmean) ==1: 
             MA[listpos]=dataset[dataset.columns[sensor]][listpos]
 
             NaNcount += 1
         listpos += 1
-    a=0.02  #set coefficients for different sensors
+    #set coefficients for different sensors
+    a=0.02  
     b=1.1
     if (sensor == 0) or (sensor == 1):
         a=0.03
         b=1.03
-    if (sensor == 4) or (sensor == 5) or (sensor == 6) or (sensor == 7) or (sensor == 8) or (sensor == 9):
+    if (sensor == 4) or (sensor == 5) or (sensor == 6):
         a=0.05
         b=1.01
+    if (sensor == 7) or (sensor == 8) or (sensor == 9):
+        a=0.05
+        b=1.01    
     if (mode == 1):
         a=0
         b=1
@@ -55,47 +64,39 @@ def peakdetection(dataset, sensor, mode):
     listpos = 0
 
     for datapoint in dataset[dataset.columns[sensor]]:
-        rollingmean = MA[listpos] #Get local mean
+        #Get local mean
+        rollingmean = MA[listpos] 
         if (listpos > NaNcount):
-        
-            if (datapoint > rollingmean): #If signal comes above local mean, mark ROI
+            #If signal comes above local mean, mark ROI
+            if (datapoint > rollingmean): 
                 window.append(datapoint)
-           
-            elif (datapoint < rollingmean) and (len(window) >= 1): #If no detectable R-complex activity -> do nothing
+            #If no detectable R-complex activity -> do nothing
+            elif (datapoint < rollingmean) and (len(window) >= 1): 
                 maximum = max(window)
-                beatposition = listpos - len(window) + (window.index(max(window))) #Notate the position of the point on the X-axis
-                peaklist.append(beatposition) #Add detected peak to list
-                window = [] #Clear marked ROI
+                beatposition = listpos - len(window) + (window.index(max(window))) 
+                #Notate the position of the point on the X-axis
+                peaklist.append(beatposition) 
+                #Add detected peak to list
+                window = [] 
+                #Clear marked ROI
         listpos += 1  
-    if sensor == 2 or sensor == 3:
-        y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
-        plt.title("Detected peaks in signal")
-        plt.xlim(0,len(dataset))
-        plt.plot(dataset[dataset.columns[sensor]], alpha=0.5, color='blue') #Plot semi-transparent HR
-        plt.plot(MA, color ='green') #Plot moving average
-        plt.scatter(peaklist, y, color='red') #Plot detected peaks
-        yy = np.array(df['CoughState']) 	
-        plt.plot(yy, alpha=0.5, color='green') 
-        plt.show()
+    #if sensor == 4 or sensor == 5 or sensor==6: #plot function for debugging purpose
+    #    y = [dataset[dataset.columns[sensor]][x] for x in peaklist] #Get the y-value of all peaks for plotting purposes
+    #    plt.title("Detected peaks in signal")
+    #    plt.xlim(0,len(dataset))
+    #    plt.plot(dataset[dataset.columns[sensor]], alpha=0.5, color='blue') #Plot semi-transparent HR
+    #    plt.plot(MA, color ='green') #Plot moving average
+    #    plt.scatter(peaklist, y, color='red') #Plot detected peaks
+    #    plt.show()
     return peaklist
 
-def peakcount(list, threshold1, threshold2):#measuring number of peaks in between two thresholds
+def peakcount(list, threshold1, threshold2):
+    #measuring number of peaks in between two thresholds
     count = 0
     for i in range (0,len(list)):
         if list[i]>threshold1 and list[i]<threshold2:
             count+=1
     return count
-
-def statedetection(list,threshold): #detect sitting or moving
-    sub=0
-    sum=0
-    moving=0
-    for n in range(0, 6):  
-        sub=list[n][1]-list[n][0]
-        sum=sum+sub
-    if sum<30 and list[n][1]!=0 and list[n][0]!=0:
-        moving=1
-    return moving
 
 def butter_lowpass(cutoff, fs, order):
     nyq = 0.5 * fs
@@ -110,10 +111,11 @@ def lowpassfilter(df):
 
 def butter_lowpass_filter(data, cutoff, fs, order):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data) #nan here when negative values are passed into this filter
+    y = lfilter(b, a, data)
     return y
 
-def difference(df):
+def difference(df): 
+    #returns df of differences
     # create feature matrix X and result vector y
     X = np.array(df[df.columns[1:11]]) 	
     y = np.array(df[df.columns[0]])	
@@ -122,7 +124,8 @@ def difference(df):
     D=[]
     Difflabel=['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     for i in range(1, n):
-        D.append(list(map(operator.sub, X[i-1,0:10], X[i,0:10]))) #from EMG1 to Gz, calculate difference
+        #calculate difference
+        D.append(list(map(operator.sub, X[i-1,0:10], X[i,0:10]))) 
         count=count+1
     Diff=np.array(D)
     my_df = pd.DataFrame(Diff, columns=Difflabel)
@@ -130,7 +133,8 @@ def difference(df):
     ds = pd.read_csv('difference.txt', names=Difflabel)
     return ds
 
-def motioncorrection(list):#correct misclassified motion
+def motioncorrection(list):
+    #correct misclassified motion
     for i in range (3,len(list)-2):
         if list[i][1] == 1 and list[i-1][1]==0 and list[i-2][1]==0 and list[i+1][1]==0 and list[i+2][1]==0:
             list[i][1]=0
@@ -141,9 +145,23 @@ def motioncorrection(list):#correct misclassified motion
         elif list[i][1] == 0 and list[i-1][1]==1 and list[i-2][1]==1 and list[i-3][1]==1 and list[i+1][1]==1:
             list[i][1]=1
     return list
-def motiondetect(df,motionth):#compare the number of peaks of two moving averages to detect motion
-    motionlist = []#list of motions for all df elements
-    motion = []#list of pairs of motion and element for every 100 elements
+
+def statedetection(list,threshold): 
+    #detect sitting or moving
+    sub=0
+    sum=0
+    moving=0
+    for n in range(0, 6):  
+        sub=list[n][1]-list[n][0]
+        sum=sum+sub
+    if sum<threshold and list[n][1]!=0 and list[n][0]!=0:
+        moving=1
+    return moving
+
+def motiondetect(df,motionth):
+    #compare the number of peaks of two moving averages to detect motion
+    motionlist = []
+    motion = []
     #number of intersection with MA (a=0.01, b=1.05) used for identifying motion
     peakAx = peakdetection(df, 4, 0) 
     peakAy = peakdetection(df, 5, 0) 
@@ -158,10 +176,10 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
     crossingGx = peakdetection(df, 7, 1) 
     crossingGy = peakdetection(df, 8, 1) 
     crossingGz = peakdetection(df, 9, 1) 
-    for i in range (0,len(df),100):
+    for i in range (0,len(df),seq_len):
         peaklistAcc=[]
         th1 = i
-        th2=i+100
+        th2=i+seq_len
 
         peaklistAcc.append([peakcount(peakAx,th1,th2),peakcount(crossingAx,th1,th2)])
         peaklistAcc.append([peakcount(peakAy,th1,th2),peakcount(crossingAy,th1,th2)])
@@ -169,17 +187,52 @@ def motiondetect(df,motionth):#compare the number of peaks of two moving average
         peaklistAcc.append([peakcount(peakGx,th1,th2),peakcount(crossingGx,th1,th2)])
         peaklistAcc.append([peakcount(peakGy,th1,th2),peakcount(crossingGy,th1,th2)])
         peaklistAcc.append([peakcount(peakGz,th1,th2),peakcount(crossingGz,th1,th2)])
-
         motion.append([th1,statedetection(peaklistAcc,motionth)])
     motion = motioncorrection(motion)
     for i in range(0,len(df)):
         for j in range(0,len(motion)):
-            if i >=motion[j][0] and i<motion[j][0]+100:
+            if i >=motion[j][0] and i<motion[j][0]+seq_len:
                 motionlist.append(motion[j][1])
     motionlist.append((0))
     return motionlist
 
-def motionrange(df):
+def dataconverion(df):    
+    #convert and export txt that has seq_len elements per row for deeplearning input
+    for c in df.columns:    
+        start=0
+        end=seq_len
+        finish=0
+        templist=[]
+        listoflist=[]
+        for i in range (0,len(df)+1):
+            if i>=start and i<end:
+                templist.append(df[c][i])
+            if i==end-1:
+                start=start+seq_len
+                listoflist.append(templist)
+                templist=[]
+            if i==round((len(df)/seq_len-1))*seq_len:
+                end=start+len(df)%seq_len-1
+                finish=1
+            elif finish==0:
+                end=start+seq_len
+        if c=='Cough state':
+            outputlisttemp=listoflist
+        np.savetxt(c+".csv", listoflist, delimiter=",", fmt='%s')
+    outputlist=[]
+    for i in range(0,len(outputlisttemp)):
+        outputbool=0
+        const=seq_len
+        if i==len(outputlisttemp)-1:
+            const=len(outputlisttemp[len(outputlisttemp)-1])%seq_len
+        for j in range(0,const):
+            if outputlisttemp[i][j]==1:
+                outputbool=1
+        outputlist.append(outputbool)
+    np.savetxt("output.csv", outputlist, delimiter=",", fmt='%s')
+
+def motionrange(df): 
+    #create and returns list of list of ranges that have same motion 
     motionrangelist=[]
     start=0
     for i in range(1,len(df)):
@@ -189,43 +242,11 @@ def motionrange(df):
             start=end
     return motionrangelist
 
-def sleep_detection(df):
-    (n,_) = df.shape 
-    asleep_list = []
-    period = 3000                   #One minute
-    if(n > period):
-        std_dev_list = []
-        threshold = 65
-        for i in range(period):
-            std_dev_list.append(45.0)
-            asleep_list.append(0)
-        for i in range(period,n):
-            std_dev_list.append(np.std(df["InstantHr"][i-period+1:i+1]))
-            if(std_dev_list[i] < threshold):
-                # && df["InstantHr"][i]<df["AvgHr"][i]
-                # potentially add this in as if you are 
-                # sleeping you Hr should also be pretty low
-                asleep_list.append(1)
-            else:
-                asleep_list.append(0)  
-        std_mean = np.mean(std_dev_list[period:])
-        for i in range(period):
-            std_dev_list[i] = std_mean
-        # left in for working out a better threshold
-        # value for if someone is sleeping or not
-        #print("np.mean(std_dev_list[period:] = ", np.mean(std_dev_list[period:]))
-        #print("np.std(std_dev_list) = ", np.std(std_dev_list))
-        #print("min(std_dev_list) = ", min(std_dev_list))
-        #print("max(std_dev_list) = ", max(std_dev_list))
-    else:
-        asleep_list = [0]*n
-    return pd.Series(asleep_list)
-
 def main(mode):
     initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                             "ls":3.0, "ir":4.0, "ik":5.0,\
                             "sa":6.0, "te":7.0}
-    names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'InstantHr', 'AvgHr','People']
+    names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People']
     Mean=[]
     Std=[]
 
@@ -243,30 +264,25 @@ def main(mode):
                 #drop the first and last line of code which are corrupted by the start/stop action
                 dftmp.drop(dftmp.index[:1],inplace = True)
                 dftmp.drop(dftmp.tail(1).index,inplace=True)
-                #standardization of each person's file
+
                 dftmp = lowpassfilter(dftmp)
                 dftmp=dftmp.dropna(how='any') 
                 dftmp.to_csv('tmpdata.txt', index=False, header=False)
                 dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
                 ds=difference(dftmp)
 
-                #peak detection using moving avg
-                motionth = 0.5 #threshold for identifying motion, difference in number of peaks
+                motionth = 10 #threshold for identifying motion, difference in number of peaks
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
                 start=0
-                end=100
-
-                #see if sleeping
-                sleep_series = sleep_detection(dftmp)
-                dftmp['Sleeping'] = sleep_series.values
+                end=seq_len
 
                 # Make a temporary .txt file in csv form so we can
                 # look at columns
                 dftmp.to_csv('tmp.txt', index=False, header=False)
                 dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-                dftmp=dftmp[:len(dftmp)//100*100]
+                dftmp=dftmp[:len(dftmp)//seq_len*seq_len]
                 # If the person forgot to set the number, then 
                 # reset the number for them automatically.
                 if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
@@ -303,7 +319,7 @@ def main(mode):
                 #drop the first and last line of code which are corrupted by the start/stop action
                 dftmp.drop(dftmp.index[:1],inplace = True)
                 dftmp.drop(dftmp.tail(1).index,inplace=True)
-                #standardization of each person's file
+
                 dftmp = lowpassfilter(dftmp)
                 dftmp=dftmp.dropna(how='any') 
                 dftmp.to_csv('tmpdata.txt', index=False, header=False)
@@ -311,23 +327,18 @@ def main(mode):
                 ds=difference(dftmp)
 
                 #peak detection using moving avg
-                motionth = 0.5 #threshold for identifying motion, difference in number of peaks, <2 is moving
+                motionth = 0.5 #threshold for identifying motion, difference in number of peaks
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
                 start=0
-                end=100
-
-                #see if sleeping
-                sleep_series = sleep_detection(dftmp)
-                dftmp['Sleeping'] = sleep_series.values
-
+                end=seq_len
 
                 # Make a temporary .txt file in csv form so we can
                 # look at columns
                 dftmp.to_csv('tmp.txt', index=False, header=False)
                 dfnum = pd.read_csv('tmp.txt', header=None, names=names)
-                dftmp=dftmp[:len(dftmp)//100*100]
+                dftmp=dftmp[:len(dftmp)//seq_len*seq_len]
                 # If the person forgot to set the number, then 
                 # reset the number for them automatically.
                 if(initials_to_number[file_name[0:2]] != dftmp['People'][14]):
@@ -335,6 +346,7 @@ def main(mode):
                         dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
                 dftest = dftest.append(dftmp)
         if(mode != 'both'):
+            #read the Mean and std that is saved previously from training data
             filename = open("meanstd.txt")
             MeanStdlist = filename.readlines()
             Mean=MeanStdlist[0]
@@ -345,10 +357,7 @@ def main(mode):
             Std = Std.replace("[", "")
             Std = Std.replace("]", "")
             Std=[float(s) for s in Std.replace("\n", "").split(',')]
-            for i in range(1, 11):
-                Mean.append(dftest.iloc[:, i].mean())
-                Std.append(dftest.iloc[:, i].std())  
-            
+
 
         dftest=standardization(dftest, Mean, Std)   
 
@@ -357,10 +366,16 @@ def main(mode):
         else:
             dftest.to_csv('combineddata_test.txt', index=False, header=False)
 
+        dfHr = dftest.iloc[:,5:13]
+        dfHr.to_csv('Hr.txt', index=False, header=False)
+
+
+
     # Delete temporary .txt files to avoid clutter
     os.remove("tmp.txt")
     os.remove("difference.txt")
     os.remove("tmpdata.txt")
+
 
     print("done")
 
