@@ -1,10 +1,14 @@
-# olympian-biotech
+# Olympian-Biotech
 Third year group project designing and producing a sensor, algorithm and app for tracking respiratory diseases in Olympic athletes. <br />
 
-Supervisor: Pantellis Georgiou <br />
-Client: Dr James Hull <br />
+Supervisors: Dr Pantellis Georgiou & Dr Jesus Rodriguez <br />
+Client: Dr James Hull <br /><br />
 
+## How to Use
+See the documentation on how to use this repository at the One Note project linked below. Look "User Guide" section for a step by step guide on getting started with our algorithm. <br />
+https://imperiallondon-my.sharepoint.com/:o:/g/personal/sa8612_ic_ac_uk/EmYY0R0KjVVDnAb2IqW31WIBaM8_fbvTIkU0F6NdJvtICA?e=MGgewp 
 
+<br />
 
 ## Authors 
 Alistair Wallace <br />
