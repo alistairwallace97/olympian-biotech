@@ -247,8 +247,6 @@ def main(mode):
                             "ls":3.0, "ir":4.0, "ik":5.0,\
                             "sa":6.0, "te":7.0}
     names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People']
-    Mean=[]
-    Std=[]
 
     if((mode == 'train') or (mode == 'both')):
         pathtrain = "./traindata/"
@@ -290,16 +288,50 @@ def main(mode):
                         dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
 
                 df = df.append(dftmp)
+        
+        df_still=df[df['Motion'] == 0]
+        df_still=df_still.reset_index()
+        df_still['Index']=df_still['index']
+        del df_still['index']
+        df_moving=df[df['Motion'] == 1]
+        df_moving=df_moving.reset_index()
+        df_moving['Index']=df_moving['index']
+        del df_moving['index']
+        df_still=df_still.reset_index(drop=True)
+        df_moving=df_moving.reset_index(drop=True)
+        Mean_still=[]
+        Std_still=[]
+        Mean_moving=[]
+        Std_moving=[]
+
         for i in range(1, 11):
-            Mean.append(df.iloc[:, i].mean())
-            Std.append(df.iloc[:, i].std())
-        MeanStd=[]
-        MeanStd.append(Mean)
-        MeanStd.append(Std)
-        filename = open('meanstd.txt', 'w')
-        for item in MeanStd:
+            Mean_still.append(df_still.iloc[:, i].mean())
+            Std_still.append(df_still.iloc[:, i].std())
+        MeanStd_still=[]
+        MeanStd_still.append(Mean_still)
+        MeanStd_still.append(Std_still)
+        filename = open('meanstd_still.txt', 'w')
+        for item in MeanStd_still:
             filename.write("%s\n" % item)
-        df=standardization(df, Mean, Std)
+        df_still=standardization(df_still, Mean_still, Std_still)
+
+        for i in range(1, 11):
+            Mean_moving.append(df_moving.iloc[:, i].mean())
+            Std_moving.append(df_moving.iloc[:, i].std())
+        MeanStd_moving=[]
+        MeanStd_moving.append(Mean_moving)
+        MeanStd_moving.append(Std_moving)
+        filename = open('meanstd_moving.txt', 'w')
+        for item in MeanStd_moving:
+            filename.write("%s\n" % item)
+        df_moving=standardization(df_moving, Mean_moving, Std_moving)
+        df_still=standardization(df_still, Mean_still, Std_still)
+
+        df=df_still.append(df_moving)
+        df=df.sort_values(by='Index')
+        df=df.reset_index(drop=True)
+        del df['Index']
+
         df.to_csv('combineddata_train.txt', index=False, header=False)
 
     if((mode == 'test')or(mode == 'both')or(mode == 'update_phone_graph')):
@@ -346,20 +378,47 @@ def main(mode):
                         dftmp.loc[i, 'People'] = initials_to_number[file_name[0:2]]
                 dftest = dftest.append(dftmp)
         if(mode != 'both'):
+            dftest_still=dftest[dftest['Motion'] == 0]
+            dftest_still=dftest_still.reset_index()
+            dftest_still['Index']=dftest_still['index']
+            del dftest_still['index']
+            dftest_moving=dftest[dftest['Motion'] == 1]
+            dftest_moving=dftest_moving.reset_index()
+            dftest_moving['Index']=dftest_moving['index']
+            del dftest_moving['index']
+            dftest_still=dftest_still.reset_index(drop=True)
+            dftest_moving=dftest_moving.reset_index(drop=True)
+
             #read the Mean and std that is saved previously from training data
-            filename = open("meanstd.txt")
-            MeanStdlist = filename.readlines()
-            Mean=MeanStdlist[0]
-            Mean = Mean.replace("[", "")
-            Mean = Mean.replace("]", "")
-            Mean=[float(s) for s in Mean.replace("\n", "").split(',')]
-            Std=MeanStdlist[1]
-            Std = Std.replace("[", "")
-            Std = Std.replace("]", "")
-            Std=[float(s) for s in Std.replace("\n", "").split(',')]
+            filename_still = open("meanstd_still.txt")
+            MeanStdlist_still = filename_still.readlines()
+            Mean_still=MeanStdlist_still[0]
+            Mean_still = Mean_still.replace("[", "")
+            Mean_still = Mean_still.replace("]", "")
+            Mean_still=[float(s) for s in Mean_still.replace("\n", "").split(',')]
+            Std_still=MeanStdlist_still[1]
+            Std_still = Std_still.replace("[", "")
+            Std_still = Std_still.replace("]", "")
+            Std_still=[float(s) for s in Std_still.replace("\n", "").split(',')]
 
+            filename_moving = open("meanstd_moving.txt")
+            MeanStdlist_moving = filename_moving.readlines()
+            Mean_moving=MeanStdlist_moving[0]
+            Mean_moving = Mean_moving.replace("[", "")
+            Mean_moving = Mean_moving.replace("]", "")
+            Mean_moving=[float(s) for s in Mean_moving.replace("\n", "").split(',')]
+            Std_moving=MeanStdlist_moving[1]
+            Std_moving = Std_moving.replace("[", "")
+            Std_moving = Std_moving.replace("]", "")
+            Std_moving=[float(s) for s in Std_moving.replace("\n", "").split(',')]
+            
+        dftest_moving=standardization(dftest_moving, Mean_moving, Std_moving)
+        dftest_still=standardization(dftest_still, Mean_still, Std_still)
 
-        dftest=standardization(dftest, Mean, Std)   
+        dftest=dftest_still.append(dftest_moving)
+        dftest=dftest.sort_values(by='Index')
+        dftest=dftest.reset_index(drop=True)
+        del dftest['Index']
 
         if(mode == 'update_phone_graph'):
             dftest.to_csv('./server_local_graph/graph_algo_in.txt', index=False, header=False)

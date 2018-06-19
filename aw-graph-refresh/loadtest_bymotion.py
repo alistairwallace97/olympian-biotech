@@ -283,6 +283,19 @@ def calcHr(diffpeak):
     for i in range (0,len(diffpeak)):
         Hr.append(60/(diffpeak[i]*0.032))
     return Hr
+def split(peaklist):
+    templist=[]
+    for i in range (0,len(peaklist)):
+        start=peaklist[i]//seq_len*seq_len
+        end=start+seq_len
+        templist.append([start,end])
+
+    templist=sorted(templist)
+    templist=[templist[i] for i in range(len(templist)) if i == 0 or templist[i] != templist[i-1]] 
+    # sort and remove duplicates
+
+    return templist
+    
 def sleep_detection(df):
     (n,_) = df.shape 
     asleep_list = []
@@ -324,39 +337,70 @@ def main():
 
     #putthing into dataframe
     df_test['Index'] = indexlist.values
-    listofzeros = [0] * len(df_test)
-    df_test['EMG1']=listofzeros
+
 
     indexlist=df_test.index.values.tolist()
     indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
     df_test['Index'] = indexlist.values
 
-    templist=splitseq_len(indexlist)
-    #list of list, range of start and end of seq_len
+    #filter out moving part
+    df_test_still=df_test[df_test['Motion'] == 0]
+    df_test_still=df_test_still.reset_index()
+    del df_test_still['index']
+
+    #filter out still part
+    df_test_moving=df_test[df_test['Motion'] == 1]
+    df_test_moving=df_test_moving.reset_index()
+    del df_test_moving['index']
+
+    indexlist_still=df_test_still['Index']
+    indexlist_moving=df_test_moving['Index']
+    #obtaining index
+
+    templist=split(indexlist)
+    templist_still=split(indexlist_still)
+    templist_moving=split(indexlist_moving)
+    #list of list, start and end of seq_len
 
     X_test=featureextraction(df_test,templist)
-    #obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
+    testindex=X_test['Index'].tolist()
+
+    X_test_still=X_test[X_test['Motion'] == 0]
+    X_test_moving=X_test[X_test['Motion'] == 1]
+
+    #obtain y for still and moving
     y_test=createoutputlist(df_test,templist)
 
-    X_testtemp=X_test
-    y_testtemp=[]
-    testindex=X_test['Index'].tolist()
-    X_test = X_test.iloc[:,0:50]
-
     # load the model from disk
-    loaded_model = joblib.load('finalized_model.sav')
-    ypred=loaded_model.predict(X_test)
-        
+    loaded_model_still = joblib.load('finalized_model_still.sav')
+    loaded_model_moving = joblib.load('finalized_model_moving.sav')
+
+    ypred_still=loaded_model_still.predict(X_test_still)
+    ypred_moving=loaded_model_moving.predict(X_test_moving)
+    
+
+    ypred=[]
+    templist_still_pos=0
+    templist_moving_pos=0
+
+    for i in range (0,len(templist)):
+        if templist[i]==templist_still[templist_still_pos]:
+            ypred.append(ypred_still[templist_still_pos])
+            templist_still_pos+=1
+        else:
+            ypred.append(ypred_moving[templist_moving_pos])
+            templist_moving_pos+=1
+
+    print(ypred)
+
     print("y_test: ",  *y_test)
     print("y_pred: ",  *ypred)
     print("Index: ", *testindex)
-    roiaccuracy=loaded_model.score(X_test, y_test)
+    Accuracy=accuracy(y_test, ypred)
 
-    sum=0
-    correct=0
 
-    print("Accuracy:  %.6f" % roiaccuracy)
+    print("Accuracy:  %.6f" % Accuracy)
 
     testconsecutiveindex=[] 
     predconsecutiveindex=[]

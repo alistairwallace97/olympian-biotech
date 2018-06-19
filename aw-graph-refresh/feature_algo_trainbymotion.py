@@ -232,6 +232,7 @@ def accuracy( Y_validation, Y_pred ):
     accuracy=1-np.mean(temp)
     return accuracy
 
+
 # define column names
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
 df=csvtodf('combineddata_train.txt')
@@ -240,15 +241,48 @@ ds=difference(df)
 indexlist=df.index.values.tolist()
 indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values
-#putting into dataframe
+
+#filter out moving part
+df_still=df[df['Motion'] == 0]
+df_still=df_still.reset_index()
+del df_still['index']
+
+#filter out still part
+df_moving=df[df['Motion'] == 1]
+df_moving=df_moving.reset_index()
+del df_moving['index']
+
+indexlist_still=df_still['Index']
+indexlist_moving=df_moving['Index']
+#obtaining index
 
 templist=split(indexlist)
+templist_still=split(indexlist_still)
+templist_moving=split(indexlist_moving)
+#list of list, start and end of seq_len
 
 X_train=featureextraction(df,templist)
-#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
-X_train = X_train.iloc[:,0:50]
+X_train_still=X_train[X_train['Motion'] == 0]
+X_train_moving=X_train[X_train['Motion'] == 1]
 
-y_train=createoutputlist(df,templist)
+#obtain y for still and moving
+y_train_still=[]
+cough=0
+for i in range(0,len(templist_still)):
+    for j in range(0,len(df_still)):
+        if df_still['Motion'][j]==0 and df_still['Index'][j]>templist_still[i][0] and df_still['Index'][j]<templist_still[i][1] and df_still['Cough state'][j]==1:
+            cough=1
+    y_train_still.append(cough)
+    cough=0
+
+y_train_moving=[]
+cough=0
+for i in range(0,len(templist_moving)):
+    for j in range(0,len(df_moving)):
+        if df_moving['Motion'][j]==1 and df_moving['Index'][j]>templist_moving[i][0] and df_moving['Index'][j]<templist_moving[i][1] and df_moving['Cough state'][j]==1:
+            cough=1
+    y_train_moving.append(cough)
+    cough=0
 
 
 #defining ml models
@@ -257,11 +291,17 @@ model="DecisionTree"
 #classifier = DecisionTreeClassifier() 
 #classifier = KNeighborsClassifier(n_neighbors=knn_n)
 #classifier = GradientBoostingClassifier(n_estimators=5000, learning_rate=0.1, max_depth=2, random_state=0)#need to adjust learning rate 
-classifier = RandomForestClassifier(n_estimators=1000)
-classifier.fit(X_train, y_train) 
+classifier_still = RandomForestClassifier(n_estimators=1000)
+classifier_still.fit(X_train_still, y_train_still) 
+classifier_moving = RandomForestClassifier(n_estimators=1000)
+classifier_moving.fit(X_train_moving, y_train_moving) 
 
-cv_results = cross_validate(classifier, X_train, y_train, return_train_score=False, scoring = ('accuracy'))
-print(cv_results)
+cv_results_still = cross_validate(classifier_still, X_train_still, y_train_still, return_train_score=False, scoring = ('accuracy'))
+print(cv_results_still)
+cv_results_moving = cross_validate(classifier_moving, X_train_moving, y_train_moving, return_train_score=False, scoring = ('accuracy'))
+print(cv_results_moving)
 
-filename = 'finalized_model.sav'
-pickle.dump(classifier, open(filename, 'wb'))
+filename = 'finalized_model_still.sav'
+pickle.dump(classifier_still, open(filename, 'wb'))
+filename = 'finalized_model_moving.sav'
+pickle.dump(classifier_moving, open(filename, 'wb'))
