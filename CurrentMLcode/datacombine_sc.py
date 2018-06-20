@@ -20,6 +20,7 @@ import pickle
 from sklearn.externals import joblib
 
 seq_len = 20
+motionth = 4.5 #threshold for identifying motion, difference in number of peaks
 
 def standardization(X_train, Mean, Std):
     for i in range(1, 11):
@@ -271,7 +272,7 @@ def main(mode):
                 dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
                 ds=difference(dftmp)
 
-                motionth = 10 #threshold for identifying motion, difference in number of peaks
+                #detect motion
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
@@ -326,8 +327,7 @@ def main(mode):
                 dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
                 ds=difference(dftmp)
 
-                #peak detection using moving avg
-                motionth = 0.5 #threshold for identifying motion, difference in number of peaks
+                #detect motion
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
