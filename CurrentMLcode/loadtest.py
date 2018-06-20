@@ -16,7 +16,7 @@ import os
 import pickle
 from sklearn.externals import joblib
 import csv
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr', 'Instant Hr', 'Avg Hr','People','Motion']  
+names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People','Motion']  
 
 seq_len = 20
 
@@ -388,8 +388,8 @@ def main():
     #Hr
     df_Hr=df_Hr.dropna(how='any') 
     df_Hr['Index'] = indexlist.values#putthing into dataframe
-    listofzeros = [0] * len(df_Hr)
     ds=difference(df_Hr)
+
     #sensor index: 1:EMG1, 2:EMG2, 3:Vibration1, 4:Vibration2, 5:Ax, 6:Ay, 7:Az, 8:Gx, 9:Gy, 10:Gz , 11:Hr1, 12:Hr2, 13:Temperature
     peaklist1 = peakdetection(df_test, 11, 0)
     peaklist2 = peakdetection(df_test, 12, 0)
