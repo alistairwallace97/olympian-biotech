@@ -1,3 +1,9 @@
+'''
+This script extracts features from test data, imports the saved model 
+and run the model on feature extracted test data and obtain predictions. 
+Exports the result as graph_test.txt for graph representation on app.
+'''
+
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
@@ -16,7 +22,7 @@ import os
 import pickle
 from sklearn.externals import joblib
 import csv
-names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People','Motion']  
+names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
 
 seq_len = 20
 
@@ -56,7 +62,7 @@ def peakdetection(dataset, sensor, mode):
 
     MA=[]
     MA = dataset[dataset.columns[sensor]].rolling(window=150).mean()
-    sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
+    #sensorname = ['EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz']
     listpos = 0
     NaNcount = 0
     for datapoint in range(0,len(MA)):   
@@ -99,7 +105,6 @@ def peakdetection(dataset, sensor, mode):
                 window.append(datapoint)
             #If no detectable R-complex activity -> do nothing
             elif (datapoint < rollingmean) and (len(window) >= 1): 
-                maximum = max(window)
                 #Notate the position of the point on the X-axis
                 beatposition = listpos - len(window) + (window.index(max(window))) 
                 #Add detected peak to list
@@ -161,7 +166,7 @@ def featureextraction(df,templist):
         moving=0
         indexbool=0
         for c in df.columns:
-            if c!='Cough state' and c!='Hr' and c!='Instant Hr' and c!= 'Avg Hr' and c!= 'People' and c!='Motion' and c!='Index':
+            if c!='Cough state' and c!='Hr1' and c!='Hr2' and c!= 'Temperature' and c!= 'People' and c!='Motion' and c!='Index' :
                 data=df[c][templist[i][0]:templist[i][1]]
                 datamax=data.max()
                 datamin=data.min()
@@ -315,11 +320,7 @@ def main():
     #df_test=csvtodf('combineddata_test.txt')
     df_Hr=df_test
 
-    ds=difference(df_test)
-
-
     indexlist=df_test.index.values.tolist()
-    indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
 
     #putthing into dataframe
@@ -339,8 +340,6 @@ def main():
     #obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
     y_test=createoutputlist(df_test,templist)
 
-    X_testtemp=X_test
-    y_testtemp=[]
     testindex=X_test['Index'].tolist()
     X_test = X_test.iloc[:,0:50]
 
@@ -354,12 +353,10 @@ def main():
     roiaccuracy=loaded_model.score(X_test, y_test)
 
     sum=0
-    correct=0
 
     print("Accuracy:  %.6f" % roiaccuracy)
 
     testconsecutiveindex=[] 
-    predconsecutiveindex=[]
 
     testcoughcount=0
     for i in range (0,len(y_test)):

@@ -1,3 +1,10 @@
+'''
+This script reads the preprocessed data, separates still data and moving data, extracts features, feeds extracted features 
+into machine learning model to train separately and exports machine learning model as finalized_model.sav file.
+It also reads test data in testdata file and runs the model on it and prints accuracy for checking purpose.
+'''
+
+
 # loading libraries
 import pandas as pd
 from sklearn.metrics import accuracy_score

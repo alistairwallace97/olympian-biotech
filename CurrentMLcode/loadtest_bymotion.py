@@ -1,3 +1,9 @@
+'''
+This script separates still and moving data, extracts features from still and moving data, imports the saved models 
+and run the models on still and moving data separately and obtain predictions. 
+Exports the result as graph_test.txt for graph representation on app.
+'''
+
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
@@ -161,7 +167,7 @@ def featureextraction(df,templist):
         moving=0
         indexbool=0
         for c in df.columns:
-            if c!='Cough state' and c!='Hr' and c!='Instant Hr' and c!= 'Avg Hr' and c!= 'People' and c!='Motion' and c!='Index':
+            if c!='Cough state' and c!='Hr1' and c!='Hr2' and c!= 'Temperature' and c!= 'People' and c!='Motion' and c!='Index' :
                 data=df[c][templist[i][0]:templist[i][1]]
                 datamax=data.max()
                 datamin=data.min()

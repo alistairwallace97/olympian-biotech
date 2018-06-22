@@ -1,3 +1,13 @@
+'''
+This script reads the train and test data and preprocesses the train and test data, 
+this includes dropping corrupted lines, dropping any rows containing NaN, applying filters, 
+detects motion and adding a column "Motion" to the test and train dataframe
+and perform standardization on each column. 
+
+It allows to only run the script on train or test data, in that case first it needs to run 
+on training data and after all the preproccess, the mean and std for each column are saved in a txt file
+so it could be used to standardization when the script only runs on test data.
+'''
 # loading libraries
 import pandas as pd
 import numpy as np
@@ -119,7 +129,6 @@ def difference(df):
     #returns df of differences
     # create feature matrix X and result vector y
     X = np.array(df[df.columns[1:11]]) 	
-    y = np.array(df[df.columns[0]])	
     (n,m)=X.shape   #get no. of rows
     count = 0
     D=[]
@@ -365,10 +374,6 @@ def main(mode):
             dftest.to_csv('./server_local_graph/graph_algo_in.txt', index=False, header=False)
         else:
             dftest.to_csv('combineddata_test.txt', index=False, header=False)
-
-        dfHr = dftest.iloc[:,5:13]
-        dfHr.to_csv('Hr.txt', index=False, header=False)
-
 
 
     # Delete temporary .txt files to avoid clutter
