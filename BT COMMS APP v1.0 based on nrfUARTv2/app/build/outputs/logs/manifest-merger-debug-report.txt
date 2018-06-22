@@ -1,0 +1,92 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+MERGED from [com.android.support:support-v4:23.0.0] C:\Users\Stephen\.gradle\caches\transforms-1\files-1.1\support-v4-23.0.0.aar\3709a6d17a61ac7658df52d29d272787\AndroidManifest.xml:17:1-24:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:1-54:12
+	package
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:25:5-39
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+	android:versionName
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:27:5-30
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:24:11-69
+	android:versionCode
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:26:5-29
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+uses-sdk
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:29:5-31:41
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:29:5-31:41
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:29:5-31:41
+MERGED from [com.android.support:support-v4:23.0.0] C:\Users\Stephen\.gradle\caches\transforms-1\files-1.1\support-v4-23.0.0.aar\3709a6d17a61ac7658df52d29d272787\AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-v4:23.0.0] C:\Users\Stephen\.gradle\caches\transforms-1\files-1.1\support-v4-23.0.0.aar\3709a6d17a61ac7658df52d29d272787\AndroidManifest.xml:20:5-43
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:29:5-31:41
+INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:29:5-31:41
+	android:targetSdkVersion
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:31:9-38
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:30:9-35
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml
+uses-permission#android.permission.BLUETOOTH
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:32:5-68
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:32:22-65
+uses-permission#android.permission.BLUETOOTH_ADMIN
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:33:5-74
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:33:22-71
+application
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:35:5-52:19
+MERGED from [com.android.support:support-v4:23.0.0] C:\Users\Stephen\.gradle\caches\transforms-1\files-1.1\support-v4-23.0.0.aar\3709a6d17a61ac7658df52d29d272787\AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-v4:23.0.0] C:\Users\Stephen\.gradle\caches\transforms-1\files-1.1\support-v4-23.0.0.aar\3709a6d17a61ac7658df52d29d272787\AndroidManifest.xml:22:5-20
+	android:label
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:36:9-41
+	android:icon
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:38:9-42
+	android:theme
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:37:9-56
+activity#com.nordicsemi.nrfUARTv2.MainActivity
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:39:9-49:20
+	android:label
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:41:13-45
+	android:windowSoftInputMode
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:42:13-54
+	android:configChanges
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:43:13-74
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:40:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:44:13-48:29
+action#android.intent.action.MAIN
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:45:17-69
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:45:25-66
+category#android.intent.category.LAUNCHER
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:47:17-77
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:47:27-74
+activity#com.nordicsemi.nrfUARTv2.DeviceListActivity
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:50:9-132
+	android:label
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:50:54-86
+	android:theme
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:50:87-130
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:50:19-53
+service#com.nordicsemi.nrfUARTv2.UartService
+ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:51:9-71
+	android:enabled
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:51:18-40
+	android:name
+		ADDED from C:\Users\Stephen\AndroidStudioProjects\Android-nRF-UART-master\app\src\main\AndroidManifest.xml:51:41-68
