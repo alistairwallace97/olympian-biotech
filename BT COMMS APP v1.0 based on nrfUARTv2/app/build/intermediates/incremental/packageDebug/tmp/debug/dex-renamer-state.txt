@@ -1,0 +1,4 @@
+#Wed May 23 15:50:23 BST 2018
+base.0=C\:\\Users\\Stephen\\AndroidStudioProjects\\Android-nRF-UART-master\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\0
+path.0=classes.dex
+renamed.0=classes.dex

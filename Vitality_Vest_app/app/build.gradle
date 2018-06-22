@@ -1,0 +1,27 @@
+apply plugin: 'com.android.application'
+android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    defaultConfig {
+        applicationId "com.nordicsemi.nrfUARTv2"
+        minSdkVersion 19
+        targetSdkVersion 19
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.dropbox.core:dropbox-core-sdk:3.0.8'
+    implementation 'com.jjoe64:graphview:4.2.2'
+    compile 'com.android.support:appcompat-v7:27.1.1'
+    compile 'com.android.support:support-v13:27.1.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+}
