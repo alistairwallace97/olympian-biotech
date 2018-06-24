@@ -24,8 +24,10 @@
 
 package com.BT_APP;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -87,6 +89,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private int datasize = 0;
     private int counter = 0;
     private String path = Environment.getExternalStorageDirectory().getAbsolutePath()+"/test/";
+    private BufferedReader br;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,26 +127,25 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             @Override
             public void onClick(View view) {
                 final String ACCESS_TOKEN = "ulsAbO-JC8AAAAAAAAAAIj0q7rYMktruYTB_4iLnzNEipHH7rPgoWggLXCLBNfGn";
-                if (data.size()== 0) {
-                    showMessage("can't send empty file to server");
-                } else {
-                    DbxRequestConfig config = new DbxRequestConfig("Dropbox/olympian-biotech");
-                    DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
+                try {
+                    File file = new File(path + "/send.txt/");
+                    if(!file.exists()){
+                        showMessage("can't send empty file to server");
+                    } else {
+                        DbxRequestConfig config = new DbxRequestConfig("Dropbox/olympian-biotech");
+                        DbxClientV2 client = new DbxClientV2(config, ACCESS_TOKEN);
 
-                    try{
                         client.files().deleteV2("/test_data/test_data.txt");
                         try (InputStream in = new FileInputStream(path + "/send.txt/")) {
                             FileMetadata metadata = client.files().uploadBuilder("/test_data/test_data.txt")
                                     .uploadAndFinish(in);
                         }
-                        Toast.makeText(getApplicationContext(), "OK",
-                                Toast.LENGTH_SHORT).show();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    } catch (DbxException e2) {
-                        e2.printStackTrace();
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("[" + currentDateTimeString + "] Done Uploading Data");
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                     }
-
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         });
