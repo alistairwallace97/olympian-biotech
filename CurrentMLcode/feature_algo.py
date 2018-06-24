@@ -248,6 +248,9 @@ indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values
 #putting into dataframe
 
+listofzeros = [0] * len(df)
+df['EMG1']=listofzeros
+
 templist=split(indexlist)
 
 X_train=featureextraction(df,templist)

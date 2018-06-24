@@ -315,6 +315,35 @@ def sleep_detection(df):
     else:
         asleep_list = [0]*n
     return pd.Series(asleep_list)
+def Hrlisttocol(df_test, Hrsel, peaklist1, peaklist2, Hr):
+    #create a Hr list to add it to the dataframe
+    Hrlist=[]
+    print(Hr)
+    if Hrsel==1:
+        peaklist=peaklist1
+    else:
+        peaklist=peaklist2
+    for i in range (0,peaklist[0]):
+        Hrlist.append(Hr[0])
+
+    start=peaklist[0]
+    for i in range(0,len(Hr)):
+        end=peaklist[i+1]
+        for j in range(start,end):
+            Hrlist.append(Hr[i])
+        start=end
+
+    for i in range (peaklist[-1],len(df_test)):
+        Hrlist.append(Hr[-1])
+
+    df_test['Hr']=Hrlist
+
+    #see if sleeping
+    sleep_series = sleep_detection(df_test)
+    df_test['Sleeping'] = sleep_series.values
+
+    return df_test
+
 def main():
     df_test=csvtodf('./server_local_graph/graph_algo_in.txt')
     #df_test=csvtodf('combineddata_test.txt')
@@ -396,53 +425,48 @@ def main():
         
         differenceHr1=diffHr(peaklist1)
         differenceHr2=diffHr(peaklist2)
+        Hrsel=1
         #Choose a better Hr
-        if len(peaklist1)!=0 > len(peaklist2)!=0:
+        noHr=0
+        if len(peaklist1)<20 and len(peaklist2)<20:
+            noHr=1
+        elif len(peaklist1)!=0 > len(peaklist2)!=0:
             differenceHr=differenceHr1
         else:
             differenceHr=differenceHr2
-        Hr = calcHr(differenceHr)
-        sum=0
-        count=0
-        for i in range (0,len(Hr)):
-            sum=sum+Hr[i]
-            count+=1
-        if count == 0:
-            avg=1
+        if noHr==0:
+            Hr = calcHr(differenceHr)
+            sum=0
+            count=0
+            for i in range (0,len(Hr)):
+                sum=sum+Hr[i]
+                count+=1
+            if count == 0:
+                avg=1
+            else:
+                avg=sum/count
+            df_test=Hrlisttocol(df_test, Hrsel, peaklist1, peaklist2, Hr)
         else:
-            avg=sum/count
-
-        #create a Hr list to add it to the dataframe
-        Hrlist=[]
-        for i in range (0,peaklist2[0]):
-            Hrlist.append(Hr[0])
-
-        start=peaklist2[0]
-        for i in range(0,len(Hr)):
-            end=peaklist2[i+1]
-            for j in range(start,end):
-                Hrlist.append(Hr[i])
-            start=end
-
-        for i in range (peaklist2[-1],len(df_test)):
-            Hrlist.append(Hr[-1])
-
-        df_test['Hr']=Hrlist
-
-        #see if sleeping
-        sleep_series = sleep_detection(df_test)
-        df_test['Sleeping'] = sleep_series.values
-
+            listofzeros = [0] * len(df_test)
+            df_test['Hr']=listofzeros
+            df_test['Sleeping']=listofzeros
         #producing three columns for generating graph
         open("./server_local_graph/graph_test.txt", "w").close()
 
-        f= open("./server_local_graph/graph_test.txt", "a")
-        f.write("n"+str(predcoughcount)+","+str(avg)+"\n")
-        for i in range (0,len(df_test)):
-            graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+","+str(df_test['Sleeping'][i])+"\n"
-            f.write(graphinput)
-        f.close()
-    
+        if noHr==0:
+            f= open("./server_local_graph/graph_test.txt", "a")
+            f.write("n"+str(predcoughcount)+","+str(avg)+"\n")
+            for i in range (0,len(df_test)):
+                graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+","+str(df_test['Sleeping'][i])+"\n"
+                f.write(graphinput)
+            f.close()
+        else:
+            f= open("./server_local_graph/graph_test.txt", "a")
+            f.write("n"+str(predcoughcount)+","+"0"+"\n")
+            for i in range (0,len(df_test)):
+                graphinput=str(df_test['EMG2'][i])+","+str(df_test['Cough state'][i])+","+str(ypred[i//seq_len])+","+str(df_test['Motion'][i])+","+str(df_test['Sleeping'][i])+"\n"
+                f.write(graphinput)
+            f.close()
     else:
         #producing three columns for generating graph
         open("./server_local_graph/graph_test.txt", "w").close()
