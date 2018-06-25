@@ -241,15 +241,16 @@ def accuracy( Y_validation, Y_pred ):
 # define column names
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
 df=csvtodf('combineddata_train.txt')
-ds=difference(df)
+
+#ds=difference(df)
 
 indexlist=df.index.values.tolist()
 indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values
 #putting into dataframe
 
-listofzeros = [0] * len(df)
-df['EMG1']=listofzeros
+
+
 
 templist=split(indexlist)
 
@@ -261,7 +262,7 @@ y_train=createoutputlist(df,templist)
 
 df_test=csvtodf('combineddata_test.txt')
 
-ds=difference(df_test)
+#ds=difference(df_test)
 
 #sensor index: 0:EMG1, 1:EMG2, 2:Vibration1, 3:Vibration2, 4:Ax, 5:Ay, 6:Az, 7:Gx, 8:Gy, 9:Gz 
 
@@ -275,7 +276,7 @@ y_testfull=createoutputlist(df_test,fulllist)
 
 peaklist=indexlist
 templist=split(peaklist)#list of list, range of start and end of region of interest
-X_test=featureextraction(df_test,templist)#obtain X, 42 columns(5 features for each sensor and 1 for motion, 1 for index)
+X_test=featureextraction(df_test,templist)#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
 y_test=createoutputlist(df_test,templist)
 #pulling out index and saving it for later reference
 X_testtemp=X_test

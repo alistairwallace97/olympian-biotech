@@ -354,9 +354,7 @@ def main():
 
     #putthing into dataframe
     df_test['Index'] = indexlist.values
-    listofzeros = [0] * len(df_test)
-    df_test['EMG1']=listofzeros
-
+    
     indexlist=df_test.index.values.tolist()
     indexlisttemp=indexlist
     indexlist=pd.Series(indexlist)
@@ -428,7 +426,7 @@ def main():
         Hrsel=1
         #Choose a better Hr
         noHr=0
-        if len(peaklist1)<20 and len(peaklist2)<20:
+        if len(peaklist1)<50 and len(peaklist2)<50:
             noHr=1
         elif len(peaklist1)!=0 > len(peaklist2)!=0:
             differenceHr=differenceHr1
@@ -447,8 +445,6 @@ def main():
                 avg=sum/count
             df_test=Hrlisttocol(df_test, Hrsel, peaklist1, peaklist2, Hr)
         else:
-            listofzeros = [0] * len(df_test)
-            df_test['Hr']=listofzeros
             df_test['Sleeping']=listofzeros
         #producing three columns for generating graph
         open("./server_local_graph/graph_test.txt", "w").close()
