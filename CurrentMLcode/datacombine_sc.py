@@ -255,7 +255,7 @@ def motionrange(df):
 def main(mode):
     initials_to_number = {"aw":0.0, "sc":1.0, "lj":2.0,\
                             "ls":3.0, "ir":4.0, "ik":5.0,\
-                            "sa":6.0, "te":7.0}
+                            "sa":6.0, "te":7.0, "gu":8.0}
     names = ['CoughState', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature','People']
     Mean=[]
     Std=[]
