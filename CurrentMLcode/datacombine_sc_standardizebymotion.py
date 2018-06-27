@@ -1,3 +1,14 @@
+'''
+This script reads the train and test data and preprocesses the train and test data, 
+this includes dropping corrupted lines, dropping any rows containing NaN, applying filters, 
+detects motion and adding a column "Motion" to the test and train dataframe, separates still data and moving data
+and perform standardization on each column for still data and moving data separately. 
+
+It allows to only run the script on train or test data, in that case first it needs to run 
+on training data and after all the preproccess, the mean and std for each column are saved in a txt file
+so it could be used to standardization when the script only runs on test data.
+'''
+
 # loading libraries
 import pandas as pd
 import numpy as np
@@ -20,6 +31,7 @@ import pickle
 from sklearn.externals import joblib
 
 seq_len = 20
+motionth = 4.5 #threshold for identifying motion, difference in number of peaks
 
 def standardization(X_train, Mean, Std):
     for i in range(1, 11):
@@ -269,7 +281,7 @@ def main(mode):
                 dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
                 ds=difference(dftmp)
 
-                motionth = 10 #threshold for identifying motion, difference in number of peaks
+                #detect motion
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values
@@ -358,8 +370,7 @@ def main(mode):
                 dftmp = pd.read_csv('tmpdata.txt', header=None, names=names)
                 ds=difference(dftmp)
 
-                #peak detection using moving avg
-                motionth = 0.5 #threshold for identifying motion, difference in number of peaks
+                #Detect motion
                 motionlist = motiondetect(ds, motionth)
                 motionseries = pd.Series(motionlist)
                 dftmp['Motion'] = motionseries.values

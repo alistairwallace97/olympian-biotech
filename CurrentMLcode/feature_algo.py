@@ -1,3 +1,9 @@
+'''
+This script reads the preprocessed data, extracts features, feeds extracted features 
+into machine learning model to train and exports machine learning model as finalized_model.sav file.
+It also reads test data in testdata file and runs the model on it and prints accuracy for checking purpose.
+'''
+
 # loading libraries
 import pandas as pd
 from sklearn.metrics import accuracy_score
@@ -235,21 +241,49 @@ def accuracy( Y_validation, Y_pred ):
 # define column names
 names = ['Cough state', 'EMG1', 'EMG2', 'Vibration1', 'Vibration2', 'Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Hr1', 'Hr2', 'Temperature', 'People', 'Motion']
 df=csvtodf('combineddata_train.txt')
-ds=difference(df)
+
+#ds=difference(df)
 
 indexlist=df.index.values.tolist()
 indexlist=pd.Series(indexlist)
 df['Index'] = indexlist.values
 #putting into dataframe
 
+
+
+
 templist=split(indexlist)
 
 X_train=featureextraction(df,templist)
 #obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
 X_train = X_train.iloc[:,0:50]
-
 y_train=createoutputlist(df,templist)
 
+
+df_test=csvtodf('combineddata_test.txt')
+
+#ds=difference(df_test)
+
+#sensor index: 0:EMG1, 1:EMG2, 2:Vibration1, 3:Vibration2, 4:Ax, 5:Ay, 6:Az, 7:Gx, 8:Gy, 9:Gz 
+
+indexlist=df_test.index.values.tolist()
+indexlisttemp=indexlist
+indexlist=pd.Series(indexlist)
+df_test['Index'] = indexlist.values#putthing into dataframe
+
+fulllist=split(indexlisttemp)
+y_testfull=createoutputlist(df_test,fulllist)
+
+peaklist=indexlist
+templist=split(peaklist)#list of list, range of start and end of region of interest
+X_test=featureextraction(df_test,templist)#obtain X, 52 columns(5 features for each sensor and 1 for motion, 1 for index)
+y_test=createoutputlist(df_test,templist)
+#pulling out index and saving it for later reference
+X_testtemp=X_test
+y_testtemp=[]
+
+testindex=X_test['Index'].tolist()
+X_test = X_test.iloc[:,0:50]
 
 #defining ml models
 knn_n=5
@@ -259,9 +293,33 @@ model="DecisionTree"
 #classifier = GradientBoostingClassifier(n_estimators=5000, learning_rate=0.1, max_depth=2, random_state=0)#need to adjust learning rate 
 classifier = RandomForestClassifier(n_estimators=1000)
 classifier.fit(X_train, y_train) 
+ypred=classifier.predict(X_test)
 
 cv_results = cross_validate(classifier, X_train, y_train, return_train_score=False, scoring = ('accuracy'))
 print(cv_results)
+
+#print result
+print("Result: ")
+print("y_test: ",  *y_test)
+print("y_pred: ",  *ypred)
+print("Index: ", *testindex)
+roiaccuracy=accuracy(y_test, ypred)
+sum=0
+correct=0
+coughaccuracy=0
+for i in range(0,len(y_test)):
+    if y_test[i]==1:
+        if ypred[i]==1:
+            correct+=1
+        sum+=1
+if sum==0:
+    coughaccuracy=-1
+else:
+    coughaccuracy=correct/sum
+print("Accuracy:  %.6f" % roiaccuracy)
+print("Coughs correctly identified:  %.6f" % coughaccuracy)
+
+
 
 filename = 'finalized_model.sav'
 pickle.dump(classifier, open(filename, 'wb'))
